@@ -104,6 +104,7 @@
             // 
             MatKhau_tb.Location = new Point(313, 318);
             MatKhau_tb.Name = "MatKhau_tb";
+            MatKhau_tb.PasswordChar = '*';
             MatKhau_tb.Size = new Size(347, 39);
             MatKhau_tb.TabIndex = 5;
             MatKhau_tb.TextChanged += MatKhau_tb_TextChanged;

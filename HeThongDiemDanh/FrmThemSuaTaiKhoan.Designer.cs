@@ -20,156 +20,235 @@ namespace HeThongDiemDanh
 
         private void InitializeComponent()
         {
-            this.cmbVaiTro = new System.Windows.Forms.ComboBox();
-            this.pnlSinhVien = new System.Windows.Forms.Panel();
-            this.txtSVMa = new System.Windows.Forms.TextBox();
-            this.txtSVHoTen = new System.Windows.Forms.TextBox();
-            this.txtSVEmail = new System.Windows.Forms.TextBox();
-            this.dtpSVNgaySinh = new System.Windows.Forms.DateTimePicker();
-            this.txtSVCCCD = new System.Windows.Forms.TextBox();
-            this.cboSVMaLop = new System.Windows.Forms.ComboBox();
-            this.cboSVMaKhoa = new System.Windows.Forms.ComboBox();
-            this.pnlGiangVien = new System.Windows.Forms.Panel();
-            this.txtGVMa = new System.Windows.Forms.TextBox();
-            this.txtGVHoTen = new System.Windows.Forms.TextBox();
-            this.txtGVEmail = new System.Windows.Forms.TextBox();
-            this.txtGVHocHam = new System.Windows.Forms.TextBox();
-            this.cboGVMaKhoa = new System.Windows.Forms.ComboBox();
-            this.pnlAdmin = new System.Windows.Forms.Panel();
-            this.txtADMa = new System.Windows.Forms.TextBox();
-            this.txtADHoTen = new System.Windows.Forms.TextBox();
-            this.txtADEmail = new System.Windows.Forms.TextBox();
-            this.btnSave = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            cmbVaiTro = new ComboBox();
+            pnlSinhVien = new Panel();
+            txtSVMa = new TextBox();
+            txtSVHoTen = new TextBox();
+            txtSVEmail = new TextBox();
+            dtpSVNgaySinh = new DateTimePicker();
+            txtSVCCCD = new TextBox();
+            cboSVMaLop = new ComboBox();
+            cboSVMaKhoa = new ComboBox();
+            pnlGiangVien = new Panel();
+            txtGVMa = new TextBox();
+            txtGVHoTen = new TextBox();
+            txtGVEmail = new TextBox();
+            txtGVHocHam = new TextBox();
+            cboGVMaKhoa = new ComboBox();
+            pnlAdmin = new Panel();
+            txtADMa = new TextBox();
+            txtADHoTen = new TextBox();
+            txtADEmail = new TextBox();
+            btnSave = new Button();
+            btnCancel = new Button();
+            pnlSinhVien.SuspendLayout();
+            pnlGiangVien.SuspendLayout();
+            pnlAdmin.SuspendLayout();
+            SuspendLayout();
             // 
             // cmbVaiTro
             // 
-            this.cmbVaiTro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbVaiTro.Location = new System.Drawing.Point(12, 12);
-            this.cmbVaiTro.Name = "cmbVaiTro";
-            this.cmbVaiTro.Size = new System.Drawing.Size(240, 40);
-            this.cmbVaiTro.TabIndex = 0;
-            this.cmbVaiTro.Items.AddRange(new object[] { "SinhVien", "GiangVien", "Admin" });
-            this.cmbVaiTro.SelectedIndexChanged += new System.EventHandler(this.cmbVaiTro_SelectedIndexChanged);
+            cmbVaiTro.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbVaiTro.Items.AddRange(new object[] { "SinhVien", "GiangVien", "Admin" });
+            cmbVaiTro.Location = new Point(12, 12);
+            cmbVaiTro.Name = "cmbVaiTro";
+            cmbVaiTro.Size = new Size(240, 40);
+            cmbVaiTro.TabIndex = 0;
+            cmbVaiTro.SelectedIndexChanged += cmbVaiTro_SelectedIndexChanged;
             // 
             // pnlSinhVien
             // 
-            this.pnlSinhVien.Location = new System.Drawing.Point(12, 60);
-            this.pnlSinhVien.Name = "pnlSinhVien";
-            this.pnlSinhVien.Size = new System.Drawing.Size(760, 300);
-            this.pnlSinhVien.TabIndex = 1;
-            // add simple controls inside
-            this.txtSVMa.Location = new System.Drawing.Point(8, 8);
-            this.txtSVMa.PlaceholderText = "Mã SV";
-            this.txtSVMa.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.txtSVMa);
-            this.txtSVHoTen.Location = new System.Drawing.Point(8, 56);
-            this.txtSVHoTen.PlaceholderText = "Họ tên";
-            this.txtSVHoTen.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.txtSVHoTen);
-            this.txtSVEmail.Location = new System.Drawing.Point(8, 104);
-            this.txtSVEmail.PlaceholderText = "Email";
-            this.txtSVEmail.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.txtSVEmail);
-            this.dtpSVNgaySinh.Location = new System.Drawing.Point(8, 152);
-            this.pnlSinhVien.Controls.Add(this.dtpSVNgaySinh);
-            this.txtSVCCCD.Location = new System.Drawing.Point(8, 200);
-            this.txtSVCCCD.PlaceholderText = "Số CCCD (12 số)";
-            this.txtSVCCCD.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.txtSVCCCD);
-            this.cboSVMaLop.Location = new System.Drawing.Point(380, 8);
-            this.cboSVMaLop.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.cboSVMaLop);
-            this.cboSVMaKhoa.Location = new System.Drawing.Point(380, 56);
-            this.cboSVMaKhoa.Width = 360;
-            this.pnlSinhVien.Controls.Add(this.cboSVMaKhoa);
-
+            pnlSinhVien.Controls.Add(txtSVMa);
+            pnlSinhVien.Controls.Add(txtSVHoTen);
+            pnlSinhVien.Controls.Add(txtSVEmail);
+            pnlSinhVien.Controls.Add(dtpSVNgaySinh);
+            pnlSinhVien.Controls.Add(txtSVCCCD);
+            pnlSinhVien.Controls.Add(cboSVMaLop);
+            pnlSinhVien.Controls.Add(cboSVMaKhoa);
+            pnlSinhVien.Location = new Point(12, 60);
+            pnlSinhVien.Name = "pnlSinhVien";
+            pnlSinhVien.Size = new Size(760, 300);
+            pnlSinhVien.TabIndex = 1;
+            pnlSinhVien.Visible = false;
+            // 
+            // txtSVMa
+            // 
+            txtSVMa.Location = new Point(8, 8);
+            txtSVMa.Name = "txtSVMa";
+            txtSVMa.PlaceholderText = "Mã SV";
+            txtSVMa.Size = new Size(360, 39);
+            txtSVMa.TabIndex = 0;
+            // 
+            // txtSVHoTen
+            // 
+            txtSVHoTen.Location = new Point(8, 56);
+            txtSVHoTen.Name = "txtSVHoTen";
+            txtSVHoTen.PlaceholderText = "Họ tên";
+            txtSVHoTen.Size = new Size(360, 39);
+            txtSVHoTen.TabIndex = 1;
+            // 
+            // txtSVEmail
+            // 
+            txtSVEmail.Location = new Point(8, 104);
+            txtSVEmail.Name = "txtSVEmail";
+            txtSVEmail.PlaceholderText = "Email";
+            txtSVEmail.Size = new Size(360, 39);
+            txtSVEmail.TabIndex = 2;
+            // 
+            // dtpSVNgaySinh
+            // 
+            dtpSVNgaySinh.Location = new Point(8, 152);
+            dtpSVNgaySinh.Name = "dtpSVNgaySinh";
+            dtpSVNgaySinh.Size = new Size(200, 39);
+            dtpSVNgaySinh.TabIndex = 3;
+            // 
+            // txtSVCCCD
+            // 
+            txtSVCCCD.Location = new Point(8, 200);
+            txtSVCCCD.Name = "txtSVCCCD";
+            txtSVCCCD.PlaceholderText = "Số CCCD (12 số)";
+            txtSVCCCD.Size = new Size(360, 39);
+            txtSVCCCD.TabIndex = 4;
+            // 
+            // cboSVMaLop
+            // 
+            cboSVMaLop.Location = new Point(380, 8);
+            cboSVMaLop.Name = "cboSVMaLop";
+            cboSVMaLop.Size = new Size(360, 40);
+            cboSVMaLop.TabIndex = 5;
+            // 
+            // cboSVMaKhoa
+            // 
+            cboSVMaKhoa.Location = new Point(380, 56);
+            cboSVMaKhoa.Name = "cboSVMaKhoa";
+            cboSVMaKhoa.Size = new Size(360, 40);
+            cboSVMaKhoa.TabIndex = 6;
             // 
             // pnlGiangVien
             // 
-            this.pnlGiangVien.Location = new System.Drawing.Point(12, 60);
-            this.pnlGiangVien.Name = "pnlGiangVien";
-            this.pnlGiangVien.Size = new System.Drawing.Size(760, 300);
-            this.pnlGiangVien.TabIndex = 2;
-            this.txtGVMa.PlaceholderText = "Mã GV";
-            this.txtGVMa.Location = new System.Drawing.Point(8, 8);
-            this.txtGVMa.Width = 360;
-            this.pnlGiangVien.Controls.Add(this.txtGVMa);
-            this.txtGVHoTen.Location = new System.Drawing.Point(8, 56);
-            this.txtGVHoTen.PlaceholderText = "Họ tên";
-            this.txtGVHoTen.Width = 360;
-            this.pnlGiangVien.Controls.Add(this.txtGVHoTen);
-            this.txtGVEmail.Location = new System.Drawing.Point(8, 104);
-            this.txtGVEmail.PlaceholderText = "Email";
-            this.txtGVEmail.Width = 360;
-            this.pnlGiangVien.Controls.Add(this.txtGVEmail);
-            this.txtGVHocHam.Location = new System.Drawing.Point(8, 152);
-            this.txtGVHocHam.PlaceholderText = "Học hàm học vị";
-            this.txtGVHocHam.Width = 360;
-            this.pnlGiangVien.Controls.Add(this.txtGVHocHam);
-            this.cboGVMaKhoa.Location = new System.Drawing.Point(380, 8);
-            this.cboGVMaKhoa.Width = 360;
-            this.pnlGiangVien.Controls.Add(this.cboGVMaKhoa);
-
+            pnlGiangVien.Controls.Add(txtGVMa);
+            pnlGiangVien.Controls.Add(txtGVHoTen);
+            pnlGiangVien.Controls.Add(txtGVEmail);
+            pnlGiangVien.Controls.Add(txtGVHocHam);
+            pnlGiangVien.Controls.Add(cboGVMaKhoa);
+            pnlGiangVien.Location = new Point(12, 60);
+            pnlGiangVien.Name = "pnlGiangVien";
+            pnlGiangVien.Size = new Size(760, 300);
+            pnlGiangVien.TabIndex = 2;
+            pnlGiangVien.Visible = false;
+            // 
+            // txtGVMa
+            // 
+            txtGVMa.Location = new Point(8, 8);
+            txtGVMa.Name = "txtGVMa";
+            txtGVMa.PlaceholderText = "Mã GV";
+            txtGVMa.Size = new Size(360, 39);
+            txtGVMa.TabIndex = 0;
+            // 
+            // txtGVHoTen
+            // 
+            txtGVHoTen.Location = new Point(8, 56);
+            txtGVHoTen.Name = "txtGVHoTen";
+            txtGVHoTen.PlaceholderText = "Họ tên";
+            txtGVHoTen.Size = new Size(360, 39);
+            txtGVHoTen.TabIndex = 1;
+            // 
+            // txtGVEmail
+            // 
+            txtGVEmail.Location = new Point(8, 104);
+            txtGVEmail.Name = "txtGVEmail";
+            txtGVEmail.PlaceholderText = "Email";
+            txtGVEmail.Size = new Size(360, 39);
+            txtGVEmail.TabIndex = 2;
+            // 
+            // txtGVHocHam
+            // 
+            txtGVHocHam.Location = new Point(8, 152);
+            txtGVHocHam.Name = "txtGVHocHam";
+            txtGVHocHam.PlaceholderText = "Học hàm học vị";
+            txtGVHocHam.Size = new Size(360, 39);
+            txtGVHocHam.TabIndex = 3;
+            // 
+            // cboGVMaKhoa
+            // 
+            cboGVMaKhoa.Location = new Point(380, 8);
+            cboGVMaKhoa.Name = "cboGVMaKhoa";
+            cboGVMaKhoa.Size = new Size(360, 40);
+            cboGVMaKhoa.TabIndex = 4;
             // 
             // pnlAdmin
             // 
-            this.pnlAdmin.Location = new System.Drawing.Point(12, 60);
-            this.pnlAdmin.Name = "pnlAdmin";
-            this.pnlAdmin.Size = new System.Drawing.Size(760, 300);
-            this.pnlAdmin.TabIndex = 3;
-            this.txtADMa.PlaceholderText = "Mã Admin";
-            this.txtADMa.Location = new System.Drawing.Point(8, 8);
-            this.txtADMa.Width = 360;
-            this.pnlAdmin.Controls.Add(this.txtADMa);
-            this.txtADHoTen.Location = new System.Drawing.Point(8, 56);
-            this.txtADHoTen.PlaceholderText = "Họ tên";
-            this.txtADHoTen.Width = 360;
-            this.pnlAdmin.Controls.Add(this.txtADHoTen);
-            this.txtADEmail.Location = new System.Drawing.Point(8, 104);
-            this.txtADEmail.PlaceholderText = "Email";
-            this.txtADEmail.Width = 360;
-            this.pnlAdmin.Controls.Add(this.txtADEmail);
-
+            pnlAdmin.Controls.Add(txtADMa);
+            pnlAdmin.Controls.Add(txtADHoTen);
+            pnlAdmin.Controls.Add(txtADEmail);
+            pnlAdmin.Location = new Point(12, 60);
+            pnlAdmin.Name = "pnlAdmin";
+            pnlAdmin.Size = new Size(760, 300);
+            pnlAdmin.TabIndex = 3;
+            pnlAdmin.Visible = false;
+            // 
+            // txtADMa
+            // 
+            txtADMa.Location = new Point(8, 8);
+            txtADMa.Name = "txtADMa";
+            txtADMa.PlaceholderText = "Mã Admin";
+            txtADMa.Size = new Size(360, 39);
+            txtADMa.TabIndex = 0;
+            // 
+            // txtADHoTen
+            // 
+            txtADHoTen.Location = new Point(8, 56);
+            txtADHoTen.Name = "txtADHoTen";
+            txtADHoTen.PlaceholderText = "Họ tên";
+            txtADHoTen.Size = new Size(360, 39);
+            txtADHoTen.TabIndex = 1;
+            // 
+            // txtADEmail
+            // 
+            txtADEmail.Location = new Point(8, 104);
+            txtADEmail.Name = "txtADEmail";
+            txtADEmail.PlaceholderText = "Email";
+            txtADEmail.Size = new Size(360, 39);
+            txtADEmail.TabIndex = 2;
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(616, 380);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(120, 40);
-            this.btnSave.TabIndex = 10;
-            this.btnSave.Text = "Lưu";
-            this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            btnSave.Location = new Point(616, 380);
+            btnSave.Name = "btnSave";
+            btnSave.Size = new Size(120, 40);
+            btnSave.TabIndex = 10;
+            btnSave.Text = "Lưu";
+            btnSave.UseVisualStyleBackColor = true;
+            btnSave.Click += btnSave_Click;
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(740, 380);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(120, 40);
-            this.btnCancel.TabIndex = 11;
-            this.btnCancel.Text = "Hủy";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
-
-            // Form
-            this.ClientSize = new System.Drawing.Size(784, 431);
-            this.Controls.Add(this.cmbVaiTro);
-            this.Controls.Add(this.pnlSinhVien);
-            this.Controls.Add(this.pnlGiangVien);
-            this.Controls.Add(this.pnlAdmin);
-            this.Controls.Add(this.btnSave);
-            this.Controls.Add(this.btnCancel);
-            this.Name = "FrmThemSuaTaiKhoan";
-            this.Text = "Thêm / Sửa Tài khoản";
-
-            this.pnlSinhVien.Visible = false;
-            this.pnlGiangVien.Visible = false;
-            this.pnlAdmin.Visible = false;
-
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            btnCancel.Location = new Point(740, 380);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(120, 40);
+            btnCancel.TabIndex = 11;
+            btnCancel.Text = "Hủy";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
+            // 
+            // FrmThemSuaTaiKhoan
+            // 
+            ClientSize = new Size(932, 431);
+            Controls.Add(cmbVaiTro);
+            Controls.Add(pnlSinhVien);
+            Controls.Add(pnlGiangVien);
+            Controls.Add(pnlAdmin);
+            Controls.Add(btnSave);
+            Controls.Add(btnCancel);
+            Name = "FrmThemSuaTaiKhoan";
+            Text = "Thêm / Sửa Tài khoản";
+            pnlSinhVien.ResumeLayout(false);
+            pnlSinhVien.PerformLayout();
+            pnlGiangVien.ResumeLayout(false);
+            pnlGiangVien.PerformLayout();
+            pnlAdmin.ResumeLayout(false);
+            pnlAdmin.PerformLayout();
+            ResumeLayout(false);
         }
 
         #endregion
