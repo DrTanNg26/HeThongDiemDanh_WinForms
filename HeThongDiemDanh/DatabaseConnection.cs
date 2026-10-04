@@ -1,113 +1,124 @@
 ﻿using System;
-using System.Data;
 using System.Configuration;
-using Microsoft.Data.SqlClient; // Nếu dự án dùng NuGet System.Data.SqlClient thì sửa lại dòng này nhé
+using System.Data;
+using Microsoft.Data.SqlClient;
 
-namespace HeThongDiemDanh // Thay bằng đúng tên Namespace trong dự án của bạn
+namespace HeThongDiemDanh
 {
     public static class DatabaseConnection
     {
-        // 1. Khai báo chuỗi kết nối (Lấy trực tiếp từ App.config hoặc dán thẳng chuỗi kết nối từ máy bạn)
-        private static string connectionString = @"Data Source=DESKTOP-KVDPUMF\SQLEXPRESS;
-                                                Initial Catalog=HeThongDiemDanh;
-                                                User ID=AdminApp;
-                                                Password=admin123;
-                                                Encrypt=True;
-                                                TrustServerCertificate=True;";
+        // Đọc từ App.config — chỉ cần sửa App.config khi đổi máy, không cần build lại
+        private static readonly string _connectionString =
+            ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
+            ?? throw new InvalidOperationException(
+                "Không tìm thấy chuỗi kết nối 'DefaultConnection' trong App.config.");
 
-        // 2. Hàm lấy đối tượng kết nối SqlConnection
+        // -------------------------------------------------------
+        // Lấy đối tượng kết nối (dùng nội bộ)
+        // -------------------------------------------------------
         public static SqlConnection GetConnection()
         {
-            return new SqlConnection(connectionString);
+            return new SqlConnection(_connectionString);
         }
 
-        // 3. Hàm thực thi câu lệnh SELECT (Trả về DataTable chứa dữ liệu)
-        public static DataTable ExecuteQuery(string query, SqlParameter[] parameters = null)
+        // -------------------------------------------------------
+        // Kiểm tra kết nối — gọi khi khởi động app để báo lỗi sớm
+        // -------------------------------------------------------
+        public static bool KiemTraKetNoi()
         {
-            DataTable dataTable = new DataTable();
+            try
+            {
+                using (SqlConnection conn = GetConnection())
+                {
+                    conn.Open();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // -------------------------------------------------------
+        // SELECT — trả về DataTable
+        // -------------------------------------------------------
+        public static DataTable ExecuteQuery(string sql, SqlParameter[] parameters = null)
+        {
+            DataTable dt = new DataTable();
 
             using (SqlConnection conn = GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                ThemThamSo(cmd, parameters);
                 try
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        if (parameters != null)
-                        {
-                            cmd.Parameters.AddRange(parameters);
-                        }
-
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
-                        {
-                            adapter.Fill(dataTable);
-                        }
-                    }
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        da.Fill(dt);
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-                    throw new Exception("Lỗi truy vấn CSDL: " + ex.Message);
+                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
                 }
             }
 
-            return dataTable;
+            return dt;
         }
 
-        // 4. Hàm thực thi INSERT, UPDATE, DELETE (Trả về số dòng bị ảnh hưởng trong SQL)
-        public static int ExecuteNonQuery(string query, SqlParameter[] parameters = null)
+        // -------------------------------------------------------
+        // INSERT / UPDATE / DELETE — trả về số dòng bị ảnh hưởng
+        // -------------------------------------------------------
+        public static int ExecuteNonQuery(string sql, SqlParameter[] parameters = null)
         {
-            int rowsAffected = 0;
-
             using (SqlConnection conn = GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                ThemThamSo(cmd, parameters);
                 try
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        if (parameters != null)
-                        {
-                            cmd.Parameters.AddRange(parameters);
-                        }
-
-                        rowsAffected = cmd.ExecuteNonQuery();
-                    }
+                    return cmd.ExecuteNonQuery();
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-                    throw new Exception("Lỗi thực thi CSDL: " + ex.Message);
+                    // Lỗi 2627 / 2601: vi phạm UNIQUE (điểm danh trùng)
+                    if (ex.Number == 2627 || ex.Number == 2601)
+                        throw new Exception("TRUNG_LAP");
+
+                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
                 }
             }
-
-            return rowsAffected;
         }
 
-        // 5. Hàm lấy 1 giá trị đơn lẻ (Dùng cho COUNT, SUM, MAX hoặc SELECT SCALAR)
-        public static object ExecuteScalar(string query, SqlParameter[] parameters = null)
+        // -------------------------------------------------------
+        // Lấy 1 giá trị đơn — dùng cho COUNT, MAX, EXISTS...
+        // -------------------------------------------------------
+        public static object ExecuteScalar(string sql, SqlParameter[] parameters = null)
         {
-            object result = null;
-
             using (SqlConnection conn = GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                ThemThamSo(cmd, parameters);
                 try
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        if (parameters != null)
-                        {
-                            cmd.Parameters.AddRange(parameters);
-                        }
-
-                        result = cmd.ExecuteScalar();
-                    }
+                    return cmd.ExecuteScalar();
                 }
-                catch (Exception ex)
+                catch (SqlException ex)
                 {
-                    throw new Exception("Lỗi lấy dữ liệu CSDL: " + ex.Message);
+                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
                 }
             }
-            return result;
+        }
+
+        // -------------------------------------------------------
+        // Hàm nội bộ: gán tham số vào SqlCommand
+        // -------------------------------------------------------
+        private static void ThemThamSo(SqlCommand cmd, SqlParameter[] parameters)
+        {
+            if (parameters != null && parameters.Length > 0)
+                cmd.Parameters.AddRange(parameters);
         }
     }
 }
