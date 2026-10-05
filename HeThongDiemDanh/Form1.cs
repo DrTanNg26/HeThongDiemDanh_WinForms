@@ -79,6 +79,7 @@ namespace HeThongDiemDanh
             { MessageBox.Show("Mật khẩu không chính xác!"); return; }
 
             // Gán UserSession
+            UserSession.Clear();
             UserSession.TenDangNhap = row.Table.Columns.Contains("TenDangNhap") ? row["TenDangNhap"].ToString() : tk;
             UserSession.HoTen = row.Table.Columns.Contains("HoTen") ? row["HoTen"].ToString() : string.Empty;
             UserSession.VaiTro = row.Table.Columns.Contains("VaiTro") ? row["VaiTro"].ToString() : string.Empty;
@@ -117,8 +118,35 @@ namespace HeThongDiemDanh
                 return;
             }
 
-            // Non-admin: hide login for now (future: open student/lecturer forms)
+            if (UserSession.LaSinhVien)
+            {
+                OpenStudentMain();
+                return;
+            }
+
+            // Giảng viên: chờ tích hợp màn hình của thành viên 2.
             this.Hide();
+        }
+
+        private void OpenStudentMain()
+        {
+            try
+            {
+                using var studentForm = new FrmStudentMain();
+                Hide();
+                studentForm.ShowDialog();
+            }
+            finally
+            {
+                UserSession.Clear();
+                MatKhau_tb.Clear();
+                if (!IsDisposed && !Disposing)
+                {
+                    Show();
+                    Activate();
+                    MatKhau_tb.Focus();
+                }
+            }
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
