@@ -16,14 +16,16 @@ namespace HeThongDiemDanh
 
         private void FrmAdmin_Load(object? sender, EventArgs e)
         {
-            // Load Khoa list immediately so admin sees data
+            // Load initial data
             try
             {
                 LoadKhoa();
+                LoadLopHocPhan();
+                LoadComboPhanLopHP();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi tải dữ liệu Khoa: " + ex.Message);
+                MessageBox.Show("Lỗi khi tải dữ liệu ban đầu: " + ex.Message);
             }
         }
 
@@ -250,8 +252,9 @@ namespace HeThongDiemDanh
             if (dgvTaiKhoan.SelectedRows.Count == 0) return;
             var row = dgvTaiKhoan.SelectedRows[0];
             string ten = row.Cells["TenDangNhap"].Value?.ToString();
-            // For now open the same form in Edit mode (load data not implemented yet)
-            using (var f = new FrmThemSuaTaiKhoan(true))
+            if (string.IsNullOrEmpty(ten)) return;
+
+            using (var f = new FrmThemSuaTaiKhoan(true, ten))
             {
                 if (f.ShowDialog() == DialogResult.OK)
                 {
@@ -569,6 +572,302 @@ namespace HeThongDiemDanh
         private void headerPanel_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        // =============================================
+        // LỚP HỌC PHẦN
+        // =============================================
+        private void LoadLopHocPhan()
+        {
+            try
+            {
+                var dt = LopHocPhanDAL.LayDanhSach();
+                dgvLopHP.DataSource = dt;
+
+                if (dgvLopHP.Columns.Contains("MaLopHP")) dgvLopHP.Columns["MaLopHP"].HeaderText = "Mã lớp HP";
+                if (dgvLopHP.Columns.Contains("TenLopHP")) dgvLopHP.Columns["TenLopHP"].HeaderText = "Tên lớp HP";
+                if (dgvLopHP.Columns.Contains("MaMon")) dgvLopHP.Columns["MaMon"].Visible = false;
+                if (dgvLopHP.Columns.Contains("TenMon")) dgvLopHP.Columns["TenMon"].HeaderText = "Môn học";
+                if (dgvLopHP.Columns.Contains("MaGV")) dgvLopHP.Columns["MaGV"].Visible = false;
+                if (dgvLopHP.Columns.Contains("TenGV")) dgvLopHP.Columns["TenGV"].HeaderText = "Giảng viên";
+                if (dgvLopHP.Columns.Contains("PhongHoc")) dgvLopHP.Columns["PhongHoc"].HeaderText = "Phòng học";
+                if (dgvLopHP.Columns.Contains("NamHoc")) dgvLopHP.Columns["NamHoc"].HeaderText = "Năm học - Học kỳ";
+                if (dgvLopHP.Columns.Contains("TongSoBuoi")) dgvLopHP.Columns["TongSoBuoi"].HeaderText = "Tổng số buổi";
+
+                LoadComboLopHPMonVaGV();
+                ClearLopHPFields();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải Lớp học phần: " + ex.Message);
+            }
+        }
+
+        private void LoadComboLopHPMonVaGV()
+        {
+            var dtMon = MonHocDAL.LayDanhSach();
+            cboLopHPMon.DataSource = dtMon;
+            cboLopHPMon.DisplayMember = "TenMon";
+            cboLopHPMon.ValueMember = "MaMon";
+
+            var dtGV = LopHocPhanDAL.LayDanhSachGiangVien();
+            cboLopHPGV.DataSource = dtGV;
+            cboLopHPGV.DisplayMember = "HoTen";
+            cboLopHPGV.ValueMember = "MaGV";
+        }
+
+        private void ClearLopHPFields()
+        {
+            txtMaLopHP.Text = string.Empty;
+            txtTenLopHP.Text = string.Empty;
+            txtPhongHoc.Text = string.Empty;
+            txtNamHoc.Text = "2025-2026_HK1";
+            txtMaLopHP.Enabled = true;
+        }
+
+        private void dgvLopHP_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var row = dgvLopHP.Rows[e.RowIndex];
+            if (row.Cells["MaLopHP"].Value != null)
+                txtMaLopHP.Text = row.Cells["MaLopHP"].Value.ToString();
+            if (row.Cells["TenLopHP"].Value != null)
+                txtTenLopHP.Text = row.Cells["TenLopHP"].Value.ToString();
+            if (row.Cells["MaMon"].Value != null)
+                cboLopHPMon.SelectedValue = row.Cells["MaMon"].Value.ToString();
+            if (row.Cells["MaGV"].Value != null)
+                cboLopHPGV.SelectedValue = row.Cells["MaGV"].Value.ToString();
+            if (row.Cells["PhongHoc"].Value != null)
+                txtPhongHoc.Text = row.Cells["PhongHoc"].Value.ToString();
+            if (row.Cells["NamHoc"].Value != null)
+                txtNamHoc.Text = row.Cells["NamHoc"].Value.ToString();
+
+            txtMaLopHP.Enabled = false;
+        }
+
+        private void btnLopHPThem_Click(object sender, EventArgs e)
+        {
+            ClearLopHPFields();
+            txtMaLopHP.Focus();
+        }
+
+        private void btnLopHPLuu_Click(object sender, EventArgs e)
+        {
+            string ma = txtMaLopHP.Text.Trim();
+            string ten = txtTenLopHP.Text.Trim();
+            string maMon = cboLopHPMon.SelectedValue?.ToString() ?? string.Empty;
+            string maGV = cboLopHPGV.SelectedValue?.ToString() ?? string.Empty;
+            string phong = txtPhongHoc.Text.Trim();
+            string namHoc = txtNamHoc.Text.Trim();
+
+            if (string.IsNullOrEmpty(ma)) { MessageBox.Show("Mã lớp HP không được để trống"); return; }
+            if (ma.Contains(" ")) { MessageBox.Show("Mã lớp HP không được chứa khoảng trắng"); return; }
+            if (string.IsNullOrEmpty(ten)) { MessageBox.Show("Tên lớp HP không được để trống"); return; }
+            if (string.IsNullOrEmpty(maMon)) { MessageBox.Show("Phải chọn Môn học"); return; }
+            if (string.IsNullOrEmpty(maGV)) { MessageBox.Show("Phải chọn Giảng viên phụ trách"); return; }
+            if (string.IsNullOrEmpty(namHoc)) { MessageBox.Show("Năm học không được để trống"); return; }
+
+            try
+            {
+                bool exists = false;
+                foreach (DataGridViewRow r in dgvLopHP.Rows)
+                {
+                    if (r.Cells["MaLopHP"].Value != null && r.Cells["MaLopHP"].Value.ToString() == ma)
+                    { exists = true; break; }
+                }
+
+                if (!exists)
+                {
+                    LopHocPhanDAL.Them(ma, ten, maMon, maGV, phong, namHoc);
+                    MessageBox.Show("Thêm Lớp học phần thành công.");
+                }
+                else
+                {
+                    LopHocPhanDAL.Sua(ma, ten, maMon, maGV, phong, namHoc);
+                    MessageBox.Show("Cập nhật Lớp học phần thành công.");
+                }
+
+                LoadLopHocPhan();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi lưu Lớp học phần: " + ex.Message);
+            }
+        }
+
+        private void btnLopHPXoa_Click(object sender, EventArgs e)
+        {
+            string ma = txtMaLopHP.Text.Trim();
+            if (string.IsNullOrEmpty(ma)) { MessageBox.Show("Chọn Lớp học phần để xóa"); return; }
+
+            try
+            {
+                if (LopHocPhanDAL.HasDependencies(ma))
+                {
+                    MessageBox.Show("Không thể xóa Lớp HP vì đã có Sinh viên phân lớp hoặc Buổi học được tạo.");
+                    return;
+                }
+
+                var confirm = MessageBox.Show($"Bạn có chắc muốn xóa Lớp HP '{ma}' không?", "Xác nhận", MessageBoxButtons.YesNo);
+                if (confirm != DialogResult.Yes) return;
+
+                LopHocPhanDAL.Xoa(ma);
+                MessageBox.Show("Xóa Lớp HP thành công.");
+                LoadLopHocPhan();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa Lớp HP: " + ex.Message);
+            }
+        }
+
+        // =============================================
+        // PHÂN LỚP HỌC PHẦN
+        // =============================================
+        private void LoadComboPhanLopHP()
+        {
+            try
+            {
+                var dt = LopHocPhanDAL.LayDanhSach();
+                cboPhanLopHP.DataSource = dt;
+                cboPhanLopHP.DisplayMember = "TenLopHP";
+                cboPhanLopHP.ValueMember = "MaLopHP";
+
+                if (dt.Rows.Count > 0)
+                {
+                    cboPhanLopHP.SelectedIndex = 0;
+                    LoadDanhSachPhanLop();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi nạp danh sách Lớp HP phân lớp: " + ex.Message);
+            }
+        }
+
+        private void cboPhanLopHP_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadDanhSachPhanLop();
+        }
+
+        private void LoadDanhSachPhanLop()
+        {
+            string maLopHP = cboPhanLopHP.SelectedValue?.ToString();
+            if (string.IsNullOrEmpty(maLopHP)) return;
+
+            try
+            {
+                // SV đã thuộc lớp
+                var dtTrong = ChiTietLopHPDAL.LaySinhVienTrongLop(maLopHP);
+                dgvSVTrongLop.DataSource = dtTrong;
+                if (dgvSVTrongLop.Columns.Contains("MaSV")) dgvSVTrongLop.Columns["MaSV"].HeaderText = "Mã SV";
+                if (dgvSVTrongLop.Columns.Contains("HoTen")) dgvSVTrongLop.Columns["HoTen"].HeaderText = "Họ tên";
+                if (dgvSVTrongLop.Columns.Contains("LopHanhChinh")) dgvSVTrongLop.Columns["LopHanhChinh"].HeaderText = "Lớp HC";
+                if (dgvSVTrongLop.Columns.Contains("TenKhoa")) dgvSVTrongLop.Columns["TenKhoa"].HeaderText = "Khoa";
+
+                // SV chưa thuộc lớp
+                string kw = txtTimSVNgoaiLop.Text.Trim();
+                var dtNgoai = ChiTietLopHPDAL.LaySinhVienNgoaiLop(maLopHP, string.IsNullOrEmpty(kw) ? null : kw);
+                dgvSVNgoaiLop.DataSource = dtNgoai;
+                if (dgvSVNgoaiLop.Columns.Contains("MaSV")) dgvSVNgoaiLop.Columns["MaSV"].HeaderText = "Mã SV";
+                if (dgvSVNgoaiLop.Columns.Contains("HoTen")) dgvSVNgoaiLop.Columns["HoTen"].HeaderText = "Họ tên";
+                if (dgvSVNgoaiLop.Columns.Contains("LopHanhChinh")) dgvSVNgoaiLop.Columns["LopHanhChinh"].HeaderText = "Lớp HC";
+                if (dgvSVNgoaiLop.Columns.Contains("TenKhoa")) dgvSVNgoaiLop.Columns["TenKhoa"].HeaderText = "Khoa";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi nạp danh sách Phân lớp: " + ex.Message);
+            }
+        }
+
+        private void btnTimSVNgoaiLop_Click(object sender, EventArgs e)
+        {
+            string maLopHP = cboPhanLopHP.SelectedValue?.ToString();
+            if (string.IsNullOrEmpty(maLopHP)) return;
+
+            string kw = txtTimSVNgoaiLop.Text.Trim();
+            var dtNgoai = ChiTietLopHPDAL.LaySinhVienNgoaiLop(maLopHP, string.IsNullOrEmpty(kw) ? null : kw);
+            dgvSVNgoaiLop.DataSource = dtNgoai;
+        }
+
+        private void btnThemSVVaoLop_Click(object sender, EventArgs e)
+        {
+            string maLopHP = cboPhanLopHP.SelectedValue?.ToString();
+            if (string.IsNullOrEmpty(maLopHP))
+            {
+                MessageBox.Show("Vui lòng chọn Lớp học phần.");
+                return;
+            }
+
+            if (dgvSVNgoaiLop.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn ít nhất 1 sinh viên bên bảng phải để thêm vào lớp.");
+                return;
+            }
+
+            try
+            {
+                int count = 0;
+                foreach (DataGridViewRow row in dgvSVNgoaiLop.SelectedRows)
+                {
+                    string maSV = row.Cells["MaSV"].Value?.ToString();
+                    if (!string.IsNullOrEmpty(maSV))
+                    {
+                        ChiTietLopHPDAL.ThemSinhVienVaoLop(maLopHP, maSV);
+                        count++;
+                    }
+                }
+
+                MessageBox.Show($"Đã thêm {count} sinh viên vào Lớp học phần thành công.");
+                LoadDanhSachPhanLop();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi thêm sinh viên vào lớp: " + ex.Message);
+            }
+        }
+
+        private void btnGoiSV_Click(object sender, EventArgs e)
+        {
+            string maLopHP = cboPhanLopHP.SelectedValue?.ToString();
+            if (string.IsNullOrEmpty(maLopHP))
+            {
+                MessageBox.Show("Vui lòng chọn Lớp học phần.");
+                return;
+            }
+
+            if (dgvSVTrongLop.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn ít nhất 1 sinh viên bên bảng trái để loại khỏi lớp.");
+                return;
+            }
+
+            try
+            {
+                int count = 0;
+                foreach (DataGridViewRow row in dgvSVTrongLop.SelectedRows)
+                {
+                    string maSV = row.Cells["MaSV"].Value?.ToString();
+                    if (!string.IsNullOrEmpty(maSV))
+                    {
+                        if (ChiTietLopHPDAL.DaCoDiemDanh(maLopHP, maSV))
+                        {
+                            MessageBox.Show($"Sinh viên {maSV} đã có bản ghi điểm danh trong lớp này, không thể xóa khỏi lớp.");
+                            continue;
+                        }
+
+                        ChiTietLopHPDAL.XoaSinhVienKhoiLop(maLopHP, maSV);
+                        count++;
+                    }
+                }
+
+                MessageBox.Show($"Đã loại {count} sinh viên khỏi Lớp học phần.");
+                LoadDanhSachPhanLop();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi loại sinh viên khỏi lớp: " + ex.Message);
+            }
         }
     }
 }

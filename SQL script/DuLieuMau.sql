@@ -28,6 +28,7 @@ GO
 
 -- Tài khoản (mật khẩu plaintext "123456" để test)
 INSERT INTO TaiKhoan VALUES ('AD01',   '123456', N'Admin',      N'Hoạt động');
+INSERT INTO TaiKhoan VALUES ('AD02',   '123456', N'Admin',      N'Hoạt động');
 INSERT INTO TaiKhoan VALUES ('GV01',   '123456', N'GiangVien',  N'Hoạt động');
 INSERT INTO TaiKhoan VALUES ('GV02',   '123456', N'GiangVien',  N'Hoạt động');
 INSERT INTO TaiKhoan VALUES ('SV001',  '123456', N'SinhVien',   N'Hoạt động');
@@ -38,7 +39,9 @@ INSERT INTO TaiKhoan VALUES ('SV005',  '123456', N'SinhVien',   N'Hoạt động
 GO
 
 -- Admin
+INSERT INTO Admin VALUES ('AD01', N'Nguyễn Quản Trị', 'admin@utt.edu.vn');
 INSERT INTO Admin VALUES ('AD02', N'Nguyễn Duy Tân', 'tanadmin@utt.edu.vn');
+
 GO
 alter table Admin 
 

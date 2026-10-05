@@ -76,5 +76,35 @@ namespace HeThongDiemDanh
             var dt = DatabaseConnection.ExecuteQuery(sql, new[] { new SqlParameter("@tk", tenDangNhap) });
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
+
+        public static DataRow LayChiTietSinhVien(string maSV)
+        {
+            string sql = @"SELECT sv.*, tk.TrangThai 
+                           FROM SinhVien sv 
+                           INNER JOIN TaiKhoan tk ON sv.MaSV = tk.TenDangNhap 
+                           WHERE sv.MaSV = @ma";
+            var dt = DatabaseConnection.ExecuteQuery(sql, new[] { new SqlParameter("@ma", maSV) });
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
+
+        public static DataRow LayChiTietGiangVien(string maGV)
+        {
+            string sql = @"SELECT gv.*, tk.TrangThai 
+                           FROM GiangVien gv 
+                           INNER JOIN TaiKhoan tk ON gv.MaGV = tk.TenDangNhap 
+                           WHERE gv.MaGV = @ma";
+            var dt = DatabaseConnection.ExecuteQuery(sql, new[] { new SqlParameter("@ma", maGV) });
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
+
+        public static DataRow LayChiTietAdmin(string maAD)
+        {
+            string sql = @"SELECT ad.*, tk.TrangThai 
+                           FROM Admin ad 
+                           INNER JOIN TaiKhoan tk ON ad.MaAD = tk.TenDangNhap 
+                           WHERE ad.MaAD = @ma";
+            var dt = DatabaseConnection.ExecuteQuery(sql, new[] { new SqlParameter("@ma", maAD) });
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
     }
 }

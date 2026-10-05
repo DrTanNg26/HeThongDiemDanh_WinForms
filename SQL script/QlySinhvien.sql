@@ -42,7 +42,7 @@ CREATE TABLE TaiKhoan (
     TrangThai    NVARCHAR(20) NOT NULL DEFAULT N'Hoạt động',
     CONSTRAINT PK_TaiKhoan     PRIMARY KEY (TenDangNhap),
     CONSTRAINT CK_TK_VaiTro    CHECK (VaiTro   IN (N'Admin', N'GiangVien', N'SinhVien')),
-    CONSTRAINT CK_TK_TrangThai CHECK (TrangThai IN (N'Hoạt động', N'Bị khóa'))
+    CONSTRAINT CK_TK_TrangThai CHECK (TrangThai IN (N'Hoạt động', N'Bị khóa', N'Chờ'))
 );
 GO
 

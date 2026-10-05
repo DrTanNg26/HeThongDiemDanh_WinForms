@@ -61,14 +61,21 @@ namespace HeThongDiemDanh
 
             var row = dt.Rows[0];
 
-            if (row["TrangThai"] != System.DBNull.Value && row["TrangThai"].ToString() == "Bị khóa")
+            string tt = row["TrangThai"] != System.DBNull.Value ? row["TrangThai"].ToString() : "";
+            if (tt == "Bị khóa")
             { MessageBox.Show("Tài khoản đang bị khóa. Vui lòng liên hệ Admin!"); return; }
+            if (tt == "Chờ")
+            { MessageBox.Show("Tài khoản của bạn đang ở trạng thái 'Chờ' duyệt từ Admin. Vui lòng quay lại sau!"); return; }
+            if (tt != "Hoạt động")
+            { MessageBox.Show("Tài khoản không ở trạng thái hoạt động!"); return; }
 
-            // So sánh mật khẩu (tạm dùng plaintext như trong ví dụ)
+            // So sánh mật khẩu (Hỗ trợ cả SHA256 và Plaintext tạm thời để tránh làm vỡ dữ liệu mẫu cũ)
             var storedPwd = row.Table.Columns.Contains("MatKhau") && row["MatKhau"] != System.DBNull.Value
                 ? row["MatKhau"].ToString() : string.Empty;
 
-            if (mk != storedPwd)
+            bool isMatch = PasswordHelper.KiemTra(mk, storedPwd) || (mk == storedPwd);
+
+            if (!isMatch)
             { MessageBox.Show("Mật khẩu không chính xác!"); return; }
 
             // Gán UserSession
@@ -121,7 +128,10 @@ namespace HeThongDiemDanh
 
         private void DangKi_bt_Click(object sender, EventArgs e)
         {
-
+            using (var frm = new FrmDangKy())
+            {
+                frm.ShowDialog();
+            }
         }
 
         private void label5_Click(object sender, EventArgs e)
@@ -147,6 +157,12 @@ namespace HeThongDiemDanh
         private void QuenMatKhau_llb_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
 
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            // Exit application
+            Application.Exit();
         }
     }
 }

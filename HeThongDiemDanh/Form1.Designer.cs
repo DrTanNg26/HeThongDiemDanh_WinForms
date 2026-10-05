@@ -38,6 +38,7 @@
             DangNhap_bt = new Button();
             DangKi_bt = new Button();
             label5 = new Label();
+            Exit_bt = new Button();
             SuspendLayout();
             // 
             // TaiKhoan_tb
@@ -123,7 +124,7 @@
             // 
             // DangNhap_bt
             // 
-            DangNhap_bt.Location = new Point(244, 467);
+            DangNhap_bt.Location = new Point(91, 466);
             DangNhap_bt.Name = "DangNhap_bt";
             DangNhap_bt.Size = new Size(150, 46);
             DangNhap_bt.TabIndex = 7;
@@ -133,7 +134,7 @@
             // 
             // DangKi_bt
             // 
-            DangKi_bt.Location = new Point(482, 467);
+            DangKi_bt.Location = new Point(368, 467);
             DangKi_bt.Name = "DangKi_bt";
             DangKi_bt.Size = new Size(150, 46);
             DangKi_bt.TabIndex = 8;
@@ -154,6 +155,16 @@
             label5.Text = "HỆ THỐNG ĐIỂM DANH ";
             label5.Click += label5_Click;
             // 
+            // Exit_bt
+            // 
+            Exit_bt.Location = new Point(624, 466);
+            Exit_bt.Name = "Exit_bt";
+            Exit_bt.Size = new Size(150, 46);
+            Exit_bt.TabIndex = 10;
+            Exit_bt.Text = "Thoát";
+            Exit_bt.UseVisualStyleBackColor = true;
+            Exit_bt.Click += button1_Click_1;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
@@ -161,6 +172,7 @@
             BackgroundImage = Properties.Resources.AnhNenUtt1;
             BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(839, 525);
+            Controls.Add(Exit_bt);
             Controls.Add(label5);
             Controls.Add(DangKi_bt);
             Controls.Add(DangNhap_bt);
@@ -190,5 +202,6 @@
         private Button DangNhap_bt;
         private Button DangKi_bt;
         private Label label5;
+        private Button Exit_bt;
     }
 }
