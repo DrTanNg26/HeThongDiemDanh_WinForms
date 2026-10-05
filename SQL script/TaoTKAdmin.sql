@@ -10,7 +10,7 @@ GO
 
 -- 2. Tạo Login AdminApp với Mật khẩu 123456, tắt ràng buộc độ phức tạp & hết hạn mật khẩu
 CREATE LOGIN [AdminApp] 
-WITH PASSWORD = N'123456', 
+WITH PASSWORD = N'admin123', 
      DEFAULT_DATABASE = [master], 
      CHECK_EXPIRATION = OFF, 
      CHECK_POLICY = OFF;
