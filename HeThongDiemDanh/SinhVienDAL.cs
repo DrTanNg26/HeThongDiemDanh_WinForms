@@ -1,43 +1,62 @@
+using System;
 using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
-namespace HeThongDiemDanh;
-
-public static class SinhVienDAL
+namespace HeThongDiemDanh
 {
-    // Chỉ đọc các phiên của lớp mà sinh viên đã được phân vào.
-    public static async Task<DataTable> LayBuoiHocDangMoAsync(string maSV, CancellationToken cancellationToken)
+    public static class SinhVienDAL
     {
-        const string sql = @"
-            SELECT bh.MaBuoiHoc, mh.TenMon, lhp.TenLopHP, gv.HoTen AS GiangVien,
-                   lhp.PhongHoc, bh.NgayHoc, bh.ThoiGianBatDau, bh.ThoiGianDemNguoc,
-                   COALESCE(dd.TrangThai, N'Chưa điểm danh') AS KetQua
-            FROM ChiTietLopHP ct
-            INNER JOIN LopHocPhan lhp ON lhp.MaLopHP = ct.MaLopHP
-            INNER JOIN MonHoc mh ON mh.MaMon = lhp.MaMon
-            INNER JOIN GiangVien gv ON gv.MaGV = lhp.MaGV
-            INNER JOIN BuoiHoc bh ON bh.MaLopHP = lhp.MaLopHP
-            LEFT JOIN DiemDanh dd ON dd.MaBuoiHoc = bh.MaBuoiHoc AND dd.MaSV = ct.MaSV
-            WHERE ct.MaSV = @MaSV AND bh.TrangThai = N'Mo'
-              AND bh.ThoiGianBatDau <= GETDATE()
-              AND DATEADD(MINUTE, @GioiHanPhut, bh.ThoiGianBatDau) > GETDATE()
-            ORDER BY bh.ThoiGianBatDau DESC, bh.MaBuoiHoc DESC";
-
-        using var connection = DatabaseConnection.GetConnection();
-        using var command = new SqlCommand(sql, connection);
-        command.Parameters.Add("@MaSV", SqlDbType.VarChar, 10).Value = maSV;
-        command.Parameters.Add("@GioiHanPhut", SqlDbType.Int).Value = AppConfig.GioiHanTuDongDongPhien;
-        await connection.OpenAsync(cancellationToken);
-        using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var table = new DataTable();
-        for (int i = 0; i < reader.FieldCount; i++)
-            table.Columns.Add(reader.GetName(i), reader.GetFieldType(i));
-        while (await reader.ReadAsync(cancellationToken))
+        public static async Task<DataTable> LayBuoiHocDangMoAsync(string maSV, CancellationToken cancellationToken)
         {
-            var values = new object[reader.FieldCount];
-            reader.GetValues(values);
-            table.Rows.Add(values);
+            // 1. Lấy các buổi học đang mở của lớp mà sinh viên đã được phân vào.
+            string sql = "SELECT bh.MaBuoiHoc, mh.TenMon, lhp.TenLopHP, gv.HoTen AS GiangVien, ";
+            sql += "lhp.PhongHoc, bh.NgayHoc, bh.ThoiGianBatDau, bh.ThoiGianDemNguoc, ";
+            sql += "COALESCE(dd.TrangThai, N'Chưa điểm danh') AS KetQua ";
+            sql += "FROM ChiTietLopHP ct ";
+            sql += "INNER JOIN LopHocPhan lhp ON lhp.MaLopHP = ct.MaLopHP ";
+            sql += "INNER JOIN MonHoc mh ON mh.MaMon = lhp.MaMon ";
+            sql += "INNER JOIN GiangVien gv ON gv.MaGV = lhp.MaGV ";
+            sql += "INNER JOIN BuoiHoc bh ON bh.MaLopHP = lhp.MaLopHP ";
+            sql += "LEFT JOIN DiemDanh dd ON dd.MaBuoiHoc = bh.MaBuoiHoc AND dd.MaSV = ct.MaSV ";
+            sql += "WHERE ct.MaSV = @MaSV AND bh.TrangThai = N'Mo' ";
+            sql += "AND bh.ThoiGianBatDau <= GETDATE() ";
+            sql += "AND DATEADD(MINUTE, @GioiHanPhut, bh.ThoiGianBatDau) > GETDATE() ";
+            sql += "ORDER BY bh.ThoiGianBatDau DESC, bh.MaBuoiHoc DESC";
+
+            // 2. Tạo kết nối và câu lệnh. using sẽ tự đóng, kể cả khi có lỗi.
+            using (SqlConnection con = DatabaseConnection.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, con))
+            {
+                // Truyền giá trị riêng bằng tham số, không nối dữ liệu người dùng vào SQL.
+                cmd.Parameters.Add("@MaSV", SqlDbType.VarChar, 10).Value = maSV;
+                cmd.Parameters.Add("@GioiHanPhut", SqlDbType.Int).Value = AppConfig.GioiHanTuDongDongPhien;
+
+                // 3. Mở kết nối và đọc dữ liệu mà không làm đứng giao diện.
+                await con.OpenAsync(cancellationToken);
+                using (SqlDataReader dr = await cmd.ExecuteReaderAsync(cancellationToken))
+                {
+                    DataTable dt = new DataTable();
+
+                    // Tạo các cột của DataTable theo kết quả SQL trả về.
+                    for (int i = 0; i < dr.FieldCount; i++)
+                    {
+                        dt.Columns.Add(dr.GetName(i), dr.GetFieldType(i));
+                    }
+
+                    // Đọc từng dòng và thêm vào DataTable.
+                    while (await dr.ReadAsync(cancellationToken))
+                    {
+                        object[] giaTri = new object[dr.FieldCount];
+                        dr.GetValues(giaTri);
+                        dt.Rows.Add(giaTri);
+                    }
+
+                    // 4. Trả bảng để Form gán vào DataGridView.DataSource.
+                    return dt;
+                }
+            }
         }
-        return table;
     }
 }
