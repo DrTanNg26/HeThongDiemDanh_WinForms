@@ -13,17 +13,15 @@ namespace HeThongDiemDanh
             ?? throw new InvalidOperationException(
                 "Không tìm thấy chuỗi kết nối 'DefaultConnection' trong App.config.");
 
-        // -------------------------------------------------------
+
         // Lấy đối tượng kết nối (dùng nội bộ)
-        // -------------------------------------------------------
         public static SqlConnection GetConnection()
         {
             return new SqlConnection(_connectionString);
         }
 
-        // -------------------------------------------------------
+        
         // Kiểm tra kết nối — gọi khi khởi động app để báo lỗi sớm
-        // -------------------------------------------------------
         public static bool KiemTraKetNoi()
         {
             try
@@ -40,9 +38,7 @@ namespace HeThongDiemDanh
             }
         }
 
-        // -------------------------------------------------------
         // SELECT — trả về DataTable
-        // -------------------------------------------------------
         public static DataTable ExecuteQuery(string sql, SqlParameter[] parameters = null)
         {
             DataTable dt = new DataTable();
@@ -66,9 +62,7 @@ namespace HeThongDiemDanh
             return dt;
         }
 
-        // -------------------------------------------------------
         // INSERT / UPDATE / DELETE — trả về số dòng bị ảnh hưởng
-        // -------------------------------------------------------
         public static int ExecuteNonQuery(string sql, SqlParameter[] parameters = null)
         {
             using (SqlConnection conn = GetConnection())
@@ -91,9 +85,7 @@ namespace HeThongDiemDanh
             }
         }
 
-        // -------------------------------------------------------
         // Lấy 1 giá trị đơn — dùng cho COUNT, MAX, EXISTS...
-        // -------------------------------------------------------
         public static object ExecuteScalar(string sql, SqlParameter[] parameters = null)
         {
             using (SqlConnection conn = GetConnection())
@@ -112,9 +104,7 @@ namespace HeThongDiemDanh
             }
         }
 
-        // -------------------------------------------------------
         // Hàm nội bộ: gán tham số vào SqlCommand
-        // -------------------------------------------------------
         private static void ThemThamSo(SqlCommand cmd, SqlParameter[] parameters)
         {
             if (parameters != null && parameters.Length > 0)

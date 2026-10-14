@@ -7,6 +7,7 @@ namespace HeThongDiemDanh
     {
         public bool IsEdit { get; private set; }
         public string TenDangNhapEdit { get; private set; }
+        public string TrangThaiCu { get; private set; }
 
         public FrmThemSuaTaiKhoan(bool isEdit = false, string tenDangNhap = null)
         {
@@ -38,6 +39,7 @@ namespace HeThongDiemDanh
                 var rowTK = TaiKhoanDAL.LayTheoTen(TenDangNhapEdit);
                 if (rowTK == null) return;
 
+                TrangThaiCu = rowTK["TrangThai"] != DBNull.Value ? rowTK["TrangThai"].ToString() : "";
                 string role = rowTK["VaiTro"].ToString();
                 cmbVaiTro.SelectedItem = role;
                 cmbVaiTro_SelectedIndexChanged(this, EventArgs.Empty);
@@ -156,7 +158,15 @@ namespace HeThongDiemDanh
                     {
                         TaiKhoanService.UpdateStudentAccount(ma, ten, string.IsNullOrEmpty(email) ? null : email, ns, cccd, malop, makhoa);
                         TaiKhoanDAL.ThayDoiTrangThai(ma, "Hoạt động");
-                        MessageBox.Show("Duyệt và Cập nhật Sinh viên thành công! Trạng thái tài khoản đã đổi sang 'Hoạt động'.");
+                        if (TrangThaiCu == "Chờ")
+                        {
+                            TaiKhoanDAL.DatLaiMatKhau(ma, PasswordHelper.BamSHA256("123456"));
+                            MessageBox.Show("Duyệt và Cập nhật Sinh viên thành công!\nTrạng thái tài khoản đã đổi sang 'Hoạt động'.\nMật khẩu đã được tự động đặt về: 123456", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Cập nhật Sinh viên thành công! Trạng thái tài khoản: 'Hoạt động'.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
                     }
                 }
                 else if (role == "GiangVien")
@@ -181,7 +191,15 @@ namespace HeThongDiemDanh
                     {
                         TaiKhoanService.UpdateTeacherAccount(ma, ten, string.IsNullOrEmpty(email) ? null : email, hhhv, makhoa);
                         TaiKhoanDAL.ThayDoiTrangThai(ma, "Hoạt động");
-                        MessageBox.Show("Duyệt và Cập nhật Giảng viên thành công! Trạng thái tài khoản đã đổi sang 'Hoạt động'.");
+                        if (TrangThaiCu == "Chờ")
+                        {
+                            TaiKhoanDAL.DatLaiMatKhau(ma, PasswordHelper.BamSHA256("123456"));
+                            MessageBox.Show("Duyệt và Cập nhật Giảng viên thành công!\nTrạng thái tài khoản đã đổi sang 'Hoạt động'.\nMật khẩu đã được tự động đặt về: 123456", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Cập nhật Giảng viên thành công! Trạng thái tài khoản: 'Hoạt động'.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
                     }
                 }
                 else if (role == "Admin")
@@ -203,7 +221,15 @@ namespace HeThongDiemDanh
                     {
                         TaiKhoanService.UpdateAdminAccount(ma, ten, string.IsNullOrEmpty(email) ? null : email);
                         TaiKhoanDAL.ThayDoiTrangThai(ma, "Hoạt động");
-                        MessageBox.Show("Duyệt và Cập nhật Admin thành công! Trạng thái tài khoản đã đổi sang 'Hoạt động'.");
+                        if (TrangThaiCu == "Chờ")
+                        {
+                            TaiKhoanDAL.DatLaiMatKhau(ma, PasswordHelper.BamSHA256("123456"));
+                            MessageBox.Show("Duyệt và Cập nhật Admin thành công!\nTrạng thái tài khoản đã đổi sang 'Hoạt động'.\nMật khẩu đã được tự động đặt về: 123456", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Cập nhật Admin thành công! Trạng thái tài khoản: 'Hoạt động'.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
                     }
                 }
 

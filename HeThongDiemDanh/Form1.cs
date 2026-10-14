@@ -5,6 +5,33 @@ namespace HeThongDiemDanh
         public Form1()
         {
             InitializeComponent();
+            this.Resize += Form1_Resize;
+            this.Load += Form1_Load;
+            this.FormClosed += Form1_FormClosed;
+        }
+
+        private void Form1_Load(object? sender, EventArgs e)
+        {
+            CenterLoginPanel();
+        }
+
+        private void Form1_Resize(object? sender, EventArgs e)
+        {
+            CenterLoginPanel();
+        }
+
+        private void CenterLoginPanel()
+        {
+            if (panelLoginCenter != null)
+            {
+                panelLoginCenter.Left = Math.Max(0, (this.ClientSize.Width - panelLoginCenter.Width) / 2);
+                panelLoginCenter.Top = Math.Max(0, (this.ClientSize.Height - panelLoginCenter.Height) / 2);
+            }
+        }
+
+        private void Form1_FormClosed(object? sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -113,8 +140,26 @@ namespace HeThongDiemDanh
             {
                 // Open admin main form
                 var adminForm = new FrmAdmin();
-                adminForm.Show();
+                adminForm.FormClosed += (s, args) =>
+                {
+                    if (string.IsNullOrEmpty(UserSession.TenDangNhap))
+                    {
+                        MatKhau_tb.Clear();
+                        if (!this.IsDisposed && !this.Disposing)
+                        {
+                            this.Show();
+                            this.Activate();
+                            CenterLoginPanel();
+                        }
+                    }
+                    else
+                    {
+                        // Người dùng tắt form Admin trực tiếp bằng nút X -> Thoát toàn bộ ứng dụng
+                        Application.Exit();
+                    }
+                };
                 this.Hide();
+                adminForm.Show();
                 return;
             }
 
@@ -184,7 +229,10 @@ namespace HeThongDiemDanh
 
         private void QuenMatKhau_llb_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-
+            using (var frm = new FrmQuenMK())
+            {
+                frm.ShowDialog();
+            }
         }
 
         private void button1_Click_1(object sender, EventArgs e)

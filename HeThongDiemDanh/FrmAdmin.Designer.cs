@@ -871,7 +871,7 @@ namespace HeThongDiemDanh
             // 
             dgvSVTrongLop.AllowUserToAddRows = false;
             dgvSVTrongLop.AllowUserToDeleteRows = false;
-            dgvSVTrongLop.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            dgvSVTrongLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             dgvSVTrongLop.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvSVTrongLop.ColumnHeadersHeight = 40;
             dgvSVTrongLop.Location = new Point(12, 100);
@@ -884,7 +884,7 @@ namespace HeThongDiemDanh
             // 
             // btnGoiSV
             // 
-            btnGoiSV.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnGoiSV.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             btnGoiSV.Location = new Point(12, 426);
             btnGoiSV.Name = "btnGoiSV";
             btnGoiSV.Size = new Size(160, 40);
@@ -895,7 +895,7 @@ namespace HeThongDiemDanh
             // 
             // lblSVNgoaiLop
             // 
-            lblSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             lblSVNgoaiLop.AutoSize = true;
             lblSVNgoaiLop.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblSVNgoaiLop.Location = new Point(500, 50);
@@ -906,7 +906,7 @@ namespace HeThongDiemDanh
             // 
             // txtTimSVNgoaiLop
             // 
-            txtTimSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            txtTimSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             txtTimSVNgoaiLop.Location = new Point(500, 78);
             txtTimSVNgoaiLop.Name = "txtTimSVNgoaiLop";
             txtTimSVNgoaiLop.Size = new Size(350, 39);
@@ -914,7 +914,7 @@ namespace HeThongDiemDanh
             // 
             // btnTimSVNgoaiLop
             // 
-            btnTimSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnTimSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             btnTimSVNgoaiLop.Location = new Point(858, 76);
             btnTimSVNgoaiLop.Name = "btnTimSVNgoaiLop";
             btnTimSVNgoaiLop.Size = new Size(110, 35);
@@ -927,7 +927,7 @@ namespace HeThongDiemDanh
             // 
             dgvSVNgoaiLop.AllowUserToAddRows = false;
             dgvSVNgoaiLop.AllowUserToDeleteRows = false;
-            dgvSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            dgvSVNgoaiLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             dgvSVNgoaiLop.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvSVNgoaiLop.ColumnHeadersHeight = 40;
             dgvSVNgoaiLop.Location = new Point(500, 118);
@@ -940,7 +940,7 @@ namespace HeThongDiemDanh
             // 
             // btnThemSVVaoLop
             // 
-            btnThemSVVaoLop.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnThemSVVaoLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             btnThemSVVaoLop.Location = new Point(500, 426);
             btnThemSVVaoLop.Name = "btnThemSVVaoLop";
             btnThemSVVaoLop.Size = new Size(180, 40);

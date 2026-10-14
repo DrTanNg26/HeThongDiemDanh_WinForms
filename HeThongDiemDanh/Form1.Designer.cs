@@ -1,4 +1,4 @@
-﻿namespace HeThongDiemDanh
+namespace HeThongDiemDanh
 {
     partial class Form1
     {
@@ -39,7 +39,28 @@
             DangKi_bt = new Button();
             label5 = new Label();
             Exit_bt = new Button();
+            panelLoginCenter = new Panel();
             SuspendLayout();
+            panelLoginCenter.SuspendLayout();
+            // 
+            // panelLoginCenter
+            // 
+            panelLoginCenter.BackColor = Color.Transparent;
+            panelLoginCenter.Controls.Add(label1);
+            panelLoginCenter.Controls.Add(label5);
+            panelLoginCenter.Controls.Add(label2);
+            panelLoginCenter.Controls.Add(label3);
+            panelLoginCenter.Controls.Add(TaiKhoan_tb);
+            panelLoginCenter.Controls.Add(label4);
+            panelLoginCenter.Controls.Add(MatKhau_tb);
+            panelLoginCenter.Controls.Add(QuenMatKhau_llb);
+            panelLoginCenter.Controls.Add(DangNhap_bt);
+            panelLoginCenter.Controls.Add(DangKi_bt);
+            panelLoginCenter.Controls.Add(Exit_bt);
+            panelLoginCenter.Location = new Point(19, 0);
+            panelLoginCenter.Name = "panelLoginCenter";
+            panelLoginCenter.Size = new Size(800, 520);
+            panelLoginCenter.TabIndex = 0;
             // 
             // TaiKhoan_tb
             // 
@@ -124,7 +145,7 @@
             // 
             // DangNhap_bt
             // 
-            DangNhap_bt.Location = new Point(91, 466);
+            DangNhap_bt.Location = new Point(91, 440);
             DangNhap_bt.Name = "DangNhap_bt";
             DangNhap_bt.Size = new Size(150, 46);
             DangNhap_bt.TabIndex = 7;
@@ -134,7 +155,7 @@
             // 
             // DangKi_bt
             // 
-            DangKi_bt.Location = new Point(368, 467);
+            DangKi_bt.Location = new Point(330, 440);
             DangKi_bt.Name = "DangKi_bt";
             DangKi_bt.Size = new Size(150, 46);
             DangKi_bt.TabIndex = 8;
@@ -157,7 +178,7 @@
             // 
             // Exit_bt
             // 
-            Exit_bt.Location = new Point(624, 466);
+            Exit_bt.Location = new Point(570, 440);
             Exit_bt.Name = "Exit_bt";
             Exit_bt.Size = new Size(150, 46);
             Exit_bt.TabIndex = 10;
@@ -172,26 +193,18 @@
             BackgroundImage = Properties.Resources.AnhNenUtt1;
             BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(839, 525);
-            Controls.Add(Exit_bt);
-            Controls.Add(label5);
-            Controls.Add(DangKi_bt);
-            Controls.Add(DangNhap_bt);
-            Controls.Add(QuenMatKhau_llb);
-            Controls.Add(MatKhau_tb);
-            Controls.Add(label4);
-            Controls.Add(label3);
-            Controls.Add(label2);
-            Controls.Add(label1);
-            Controls.Add(TaiKhoan_tb);
+            Controls.Add(panelLoginCenter);
             DoubleBuffered = true;
             Name = "Form1";
             Text = "Form1";
+            panelLoginCenter.ResumeLayout(false);
+            panelLoginCenter.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
+        private Panel panelLoginCenter;
         private TextBox TaiKhoan_tb;
         private Label label1;
         private Label label2;

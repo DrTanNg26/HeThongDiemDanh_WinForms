@@ -12,6 +12,63 @@ namespace HeThongDiemDanh
             lblAdminName.Text = string.IsNullOrEmpty(UserSession.HoTen) ? UserSession.TenDangNhap : UserSession.HoTen;
             // Hook load for initial data
             this.Load += FrmAdmin_Load;
+            tabPhanLop.Resize += TabPhanLop_Resize;
+        }
+
+        private void TabPhanLop_Resize(object? sender, EventArgs e)
+        {
+            LayoutTabPhanLop();
+        }
+
+        private void LayoutTabPhanLop()
+        {
+            if (tabPhanLop == null || dgvSVTrongLop == null || dgvSVNgoaiLop == null) return;
+
+            int tabW = tabPhanLop.ClientSize.Width;
+            int tabH = tabPhanLop.ClientSize.Height;
+            if (tabW < 200 || tabH < 200) return;
+
+            int padding = 12;
+            int gap = 20;
+            int availableWidth = tabW - (padding * 2) - gap;
+            int colWidth = Math.Max(250, availableWidth / 2);
+
+            // Left Column:
+            int leftX = padding;
+            lblChonLopHP.Location = new Point(leftX, 14);
+            cboPhanLopHP.Location = new Point(lblChonLopHP.Right + 10, 10);
+            cboPhanLopHP.Width = Math.Min(350, Math.Max(200, colWidth - lblChonLopHP.Width - 10));
+
+            lblSVTrongLop.Location = new Point(leftX, 55);
+
+            int gridTop = 95;
+            int btnHeight = 40;
+            int bottomSpacing = 15;
+            int gridHeight = Math.Max(150, tabH - gridTop - btnHeight - (bottomSpacing * 2));
+
+            dgvSVTrongLop.Location = new Point(leftX, gridTop);
+            dgvSVTrongLop.Size = new Size(colWidth, gridHeight);
+
+            btnGoiSV.Location = new Point(leftX, dgvSVTrongLop.Bottom + bottomSpacing);
+            btnGoiSV.Size = new Size(180, btnHeight);
+
+            // Right Column:
+            int rightX = leftX + colWidth + gap;
+            lblSVNgoaiLop.Location = new Point(rightX, 55);
+
+            int btnTimWidth = 90;
+            btnTimSVNgoaiLop.Size = new Size(btnTimWidth, 35);
+            btnTimSVNgoaiLop.Location = new Point(rightX + colWidth - btnTimWidth, 52);
+
+            int txtTimWidth = Math.Max(120, colWidth - lblSVNgoaiLop.Width - btnTimWidth - 25);
+            txtTimSVNgoaiLop.Location = new Point(lblSVNgoaiLop.Right + 10, 52);
+            txtTimSVNgoaiLop.Size = new Size(txtTimWidth, 35);
+
+            dgvSVNgoaiLop.Location = new Point(rightX, gridTop);
+            dgvSVNgoaiLop.Size = new Size(colWidth, gridHeight);
+
+            btnThemSVVaoLop.Location = new Point(rightX, dgvSVNgoaiLop.Bottom + bottomSpacing);
+            btnThemSVVaoLop.Size = new Size(180, btnHeight);
         }
 
         private void FrmAdmin_Load(object? sender, EventArgs e)
@@ -22,6 +79,7 @@ namespace HeThongDiemDanh
                 LoadKhoa();
                 LoadLopHocPhan();
                 LoadComboPhanLopHP();
+                LayoutTabPhanLop();
             }
             catch (Exception ex)
             {
@@ -176,7 +234,19 @@ namespace HeThongDiemDanh
             btnTaiKhoanLockUnlock.Enabled = true;
             btnTaiKhoanResetPwd.Enabled = true;
 
-            btnTaiKhoanLockUnlock.Text = trangThai == "Bị khóa" ? "Mở khóa" : "Khóa";
+            if (trangThai == "Chờ")
+            {
+                btnTaiKhoanLockUnlock.Text = "Duyệt TK";
+            }
+            else if (trangThai == "Bị khóa")
+            {
+                btnTaiKhoanLockUnlock.Text = "Mở khóa";
+            }
+            else
+            {
+                btnTaiKhoanLockUnlock.Text = "Khóa";
+            }
+
             // disable lock button if selected is current admin
             if (ten == UserSession.TenDangNhap)
             {
@@ -198,9 +268,28 @@ namespace HeThongDiemDanh
                 return;
             }
 
+            if (trangThai == "Chờ")
+            {
+                var confirm = MessageBox.Show($"Tài khoản '{ten}' đang ở trạng thái 'Chờ'.\nBạn có muốn duyệt tài khoản này về 'Hoạt động' và đặt lại mật khẩu về mặc định (123456) không?", "Xác nhận duyệt tài khoản", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (confirm != DialogResult.Yes) return;
+
+                try
+                {
+                    TaiKhoanDAL.ThayDoiTrangThai(ten, "Hoạt động");
+                    TaiKhoanDAL.DatLaiMatKhau(ten, PasswordHelper.BamSHA256("123456"));
+                    MessageBox.Show($"Đã duyệt tài khoản '{ten}' thành công! Trạng thái đã chuyển sang 'Hoạt động' và mật khẩu đã đặt lại về mặc định (123456).", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadTaiKhoan();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi duyệt tài khoản: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                return;
+            }
+
             string newState = trangThai == "Bị khóa" ? "Hoạt động" : "Bị khóa";
-            var confirm = MessageBox.Show($"Bạn có chắc muốn đổi trạng thái tài khoản '{ten}' thành '{newState}' không?", "Xác nhận", MessageBoxButtons.YesNo);
-            if (confirm != DialogResult.Yes) return;
+            var confirmLock = MessageBox.Show($"Bạn có chắc muốn đổi trạng thái tài khoản '{ten}' thành '{newState}' không?", "Xác nhận", MessageBoxButtons.YesNo);
+            if (confirmLock != DialogResult.Yes) return;
 
             try
             {
@@ -537,7 +626,7 @@ namespace HeThongDiemDanh
         }
         private void btnLogout_Click(object sender, EventArgs e)
         {
-            // Clear session and return to login (Form1)
+            // Clear session and return to login (Form1 will detect empty session and Show itself)
             try
             {
                 UserSession.Clear();
@@ -546,10 +635,6 @@ namespace HeThongDiemDanh
             {
                 // ignore
             }
-
-            // Show login form again
-            var login = new Form1();
-            login.Show();
 
             this.Close();
         }
