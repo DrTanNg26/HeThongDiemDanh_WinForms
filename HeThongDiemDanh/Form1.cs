@@ -177,18 +177,23 @@ namespace HeThongDiemDanh
         {
             try
             {
-                using var studentForm = new FrmStudentMain();
-                Hide();
-                studentForm.ShowDialog();
+                // Mở màn hình sinh viên và tạm ẩn màn hình đăng nhập.
+                using (FrmStudentMain frmSinhVien = new FrmStudentMain())
+                {
+                    this.Hide();
+                    // ShowDialog chờ đến khi sinh viên đóng form hoặc đăng xuất.
+                    frmSinhVien.ShowDialog();
+                }
             }
             finally
             {
+                // Xóa phiên và mật khẩu trước khi hiện lại màn hình đăng nhập.
                 UserSession.Clear();
                 MatKhau_tb.Clear();
-                if (!IsDisposed && !Disposing)
+                if (!this.IsDisposed && !this.Disposing)
                 {
-                    Show();
-                    Activate();
+                    this.Show();
+                    this.Activate();
                     MatKhau_tb.Focus();
                 }
             }

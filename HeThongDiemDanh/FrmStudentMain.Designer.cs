@@ -27,183 +27,290 @@ partial class FrmStudentMain
         lblEmail = new Label();
         tabs = new TabControl();
         tabDiemDanh = new TabPage();
-        tabLichSu = new TabPage();
+        dgvBuoiHoc = new DataGridView();
+        lblStatus = new Label();
+        lblNextStep = new Label();
         pnlActions = new Panel();
         lblSection = new Label();
         btnRefresh = new Button();
-        lblStatus = new Label();
-        lblNextStep = new Label();
+        btnDiemDanh = new Button();
+        chkXemThu = new CheckBox();
+        tabLichSu = new TabPage();
         lblHistory = new Label();
-        dgvBuoiHoc = new DataGridView();
-        colMon = new DataGridViewTextBoxColumn();
-        colLop = new DataGridViewTextBoxColumn();
-        colGiangVien = new DataGridViewTextBoxColumn();
-        colPhong = new DataGridViewTextBoxColumn();
-        colBatDau = new DataGridViewTextBoxColumn();
-        colKetQua = new DataGridViewTextBoxColumn();
         clockTimer = new System.Windows.Forms.Timer(components);
         pnlHeader.SuspendLayout();
         pnlProfile.SuspendLayout();
         tabs.SuspendLayout();
         tabDiemDanh.SuspendLayout();
-        tabLichSu.SuspendLayout();
-        pnlActions.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)dgvBuoiHoc).BeginInit();
+        pnlActions.SuspendLayout();
+        tabLichSu.SuspendLayout();
         SuspendLayout();
-        // Header
+        // 
+        // pnlHeader
+        // 
         pnlHeader.BackColor = Color.FromArgb(20, 49, 83);
-        pnlHeader.Dock = DockStyle.Top;
-        pnlHeader.Size = new Size(1100, 100);
         pnlHeader.Controls.Add(lblTitle);
         pnlHeader.Controls.Add(lblClock);
         pnlHeader.Controls.Add(btnLogout);
+        pnlHeader.Dock = DockStyle.Top;
+        pnlHeader.Location = new Point(0, 0);
         pnlHeader.Name = "pnlHeader";
-        lblTitle.Text = "UTT  |  CỔNG SINH VIÊN";
+        pnlHeader.Size = new Size(1100, 100);
+        pnlHeader.TabIndex = 2;
+        // 
+        // lblTitle
+        // 
         lblTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
         lblTitle.ForeColor = Color.White;
         lblTitle.Location = new Point(24, 18);
-        lblTitle.Size = new Size(700, 42);
         lblTitle.Name = "lblTitle";
-        lblClock.Text = "Ngày / giờ hiện tại";
+        lblTitle.Size = new Size(700, 42);
+        lblTitle.TabIndex = 0;
+        lblTitle.Text = "UTT  |  CỔNG SINH VIÊN";
+        // 
+        // lblClock
+        // 
         lblClock.ForeColor = Color.FromArgb(211, 227, 244);
         lblClock.Location = new Point(28, 65);
-        lblClock.Size = new Size(500, 28);
         lblClock.Name = "lblClock";
-        btnLogout.Text = "Đăng xuất";
-        btnLogout.Location = new Point(932, 28);
-        btnLogout.Size = new Size(140, 42);
+        lblClock.Size = new Size(500, 28);
+        lblClock.TabIndex = 1;
+        lblClock.Text = "Ngày / giờ hiện tại";
+        // 
+        // btnLogout
+        // 
         btnLogout.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         btnLogout.BackColor = Color.White;
-        btnLogout.ForeColor = Color.FromArgb(20, 49, 83);
         btnLogout.FlatStyle = FlatStyle.Flat;
+        btnLogout.ForeColor = Color.FromArgb(20, 49, 83);
+        btnLogout.Location = new Point(932, 28);
         btnLogout.Name = "btnLogout";
+        btnLogout.Size = new Size(140, 42);
+        btnLogout.TabIndex = 2;
+        btnLogout.Text = "Đăng xuất";
+        btnLogout.UseVisualStyleBackColor = false;
         btnLogout.Click += btnLogout_Click;
-        // Profile
-        pnlProfile.Dock = DockStyle.Top;
-        pnlProfile.Size = new Size(1100, 132);
+        // 
+        // pnlProfile
+        // 
         pnlProfile.BackColor = Color.White;
         pnlProfile.Controls.Add(lblHoTen);
         pnlProfile.Controls.Add(lblThongTin);
         pnlProfile.Controls.Add(lblEmail);
-        lblHoTen.Text = "Thông tin sinh viên";
+        pnlProfile.Dock = DockStyle.Top;
+        pnlProfile.Location = new Point(0, 100);
+        pnlProfile.Name = "pnlProfile";
+        pnlProfile.Size = new Size(1100, 132);
+        pnlProfile.TabIndex = 1;
+        // 
+        // lblHoTen
+        // 
+        lblHoTen.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         lblHoTen.Font = new Font("Segoe UI", 17F, FontStyle.Bold);
         lblHoTen.Location = new Point(26, 16);
-        lblHoTen.Size = new Size(1040, 38);
-        lblHoTen.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         lblHoTen.Name = "lblHoTen";
-        lblThongTin.Text = "Mã sinh viên  •  Lớp hành chính  •  Khoa";
-        lblThongTin.Location = new Point(28, 62);
-        lblThongTin.Size = new Size(1040, 26);
+        lblHoTen.Size = new Size(1040, 38);
+        lblHoTen.TabIndex = 0;
+        lblHoTen.Text = "Thông tin sinh viên";
+        // 
+        // lblThongTin
+        // 
         lblThongTin.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        lblThongTin.Location = new Point(28, 62);
         lblThongTin.Name = "lblThongTin";
-        lblEmail.Location = new Point(28, 94);
-        lblEmail.Size = new Size(1040, 25);
+        lblThongTin.Size = new Size(1040, 26);
+        lblThongTin.TabIndex = 1;
+        lblThongTin.Text = "Mã sinh viên  •  Lớp hành chính  •  Khoa";
+        // 
+        // lblEmail
+        // 
         lblEmail.ForeColor = Color.FromArgb(91, 108, 128);
+        lblEmail.Location = new Point(28, 94);
         lblEmail.Name = "lblEmail";
-        // Tabs
-        tabs.Dock = DockStyle.Fill;
-        tabs.Name = "tabs";
+        lblEmail.Size = new Size(1040, 25);
+        lblEmail.TabIndex = 2;
+        // 
+        // tabs
+        // 
         tabs.Controls.Add(tabDiemDanh);
         tabs.Controls.Add(tabLichSu);
-        tabDiemDanh.Text = "Điểm danh buổi học";
-        tabDiemDanh.Name = "tabDiemDanh";
-        tabDiemDanh.Padding = new Padding(18);
+        tabs.Dock = DockStyle.Fill;
+        tabs.Location = new Point(0, 232);
+        tabs.Name = "tabs";
+        tabs.SelectedIndex = 0;
+        tabs.Size = new Size(1100, 488);
+        tabs.TabIndex = 0;
+        // 
+        // tabDiemDanh
+        // 
         tabDiemDanh.BackColor = Color.FromArgb(243, 246, 250);
         tabDiemDanh.Controls.Add(dgvBuoiHoc);
         tabDiemDanh.Controls.Add(lblStatus);
         tabDiemDanh.Controls.Add(lblNextStep);
         tabDiemDanh.Controls.Add(pnlActions);
-        pnlActions.Dock = DockStyle.Top;
-        pnlActions.Height = 62;
-        pnlActions.Controls.Add(lblSection);
-        pnlActions.Controls.Add(btnRefresh);
-        lblSection.Text = "Buổi học đang mở";
-        lblSection.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-        lblSection.Location = new Point(0, 13);
-        lblSection.Size = new Size(600, 34);
-        btnRefresh.Text = "Làm mới";
-        btnRefresh.Name = "btnRefresh";
-        btnRefresh.Size = new Size(130, 40);
-        btnRefresh.Dock = DockStyle.Right;
-        btnRefresh.BackColor = Color.FromArgb(24, 94, 177);
-        btnRefresh.ForeColor = Color.White;
-        btnRefresh.FlatStyle = FlatStyle.Flat;
-        btnRefresh.Click += btnRefresh_Click;
-        lblStatus.Dock = DockStyle.Bottom;
-        lblStatus.Height = 54;
-        lblStatus.Padding = new Padding(0, 12, 0, 0);
-        lblStatus.Text = "Danh sách sẽ được tải sau khi đăng nhập.";
-        lblStatus.Name = "lblStatus";
-        lblNextStep.Dock = DockStyle.Bottom;
-        lblNextStep.Height = 46;
-        lblNextStep.Text = "Chức năng xác thực và nhập OTP sẽ được bổ sung ở bước tiếp theo.";
-        lblNextStep.ForeColor = Color.FromArgb(91, 108, 128);
-        // Read-only lesson list
-        dgvBuoiHoc.Name = "dgvBuoiHoc";
-        dgvBuoiHoc.Dock = DockStyle.Fill;
-        dgvBuoiHoc.AutoGenerateColumns = false;
+        tabDiemDanh.Location = new Point(4, 32);
+        tabDiemDanh.Name = "tabDiemDanh";
+        tabDiemDanh.Padding = new Padding(18);
+        tabDiemDanh.Size = new Size(1092, 452);
+        tabDiemDanh.TabIndex = 0;
+        tabDiemDanh.Text = "Điểm danh buổi học";
+        // 
+        // dgvBuoiHoc
+        // 
         dgvBuoiHoc.AllowUserToAddRows = false;
         dgvBuoiHoc.AllowUserToDeleteRows = false;
-        dgvBuoiHoc.ReadOnly = true;
-        dgvBuoiHoc.RowHeadersVisible = false;
-        dgvBuoiHoc.MultiSelect = false;
-        dgvBuoiHoc.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvBuoiHoc.AutoGenerateColumns = true;
         dgvBuoiHoc.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         dgvBuoiHoc.BackgroundColor = Color.White;
         dgvBuoiHoc.BorderStyle = BorderStyle.None;
         dgvBuoiHoc.ColumnHeadersHeight = 42;
+        dgvBuoiHoc.Dock = DockStyle.Fill;
+        dgvBuoiHoc.Location = new Point(18, 80);
+        dgvBuoiHoc.MultiSelect = false;
+        dgvBuoiHoc.Name = "dgvBuoiHoc";
+        dgvBuoiHoc.ReadOnly = true;
+        dgvBuoiHoc.RowHeadersVisible = false;
+        dgvBuoiHoc.RowHeadersWidth = 51;
         dgvBuoiHoc.RowTemplate.Height = 38;
-        dgvBuoiHoc.Columns.AddRange(new DataGridViewColumn[] { colMon, colLop, colGiangVien, colPhong, colBatDau, colKetQua });
-        colMon.HeaderText = "Môn học"; colMon.DataPropertyName = "TenMon"; colMon.FillWeight = 130;
-        colLop.HeaderText = "Lớp học phần"; colLop.DataPropertyName = "TenLopHP"; colLop.FillWeight = 140;
-        colGiangVien.HeaderText = "Giảng viên"; colGiangVien.DataPropertyName = "GiangVien";
-        colPhong.HeaderText = "Phòng"; colPhong.DataPropertyName = "PhongHoc"; colPhong.FillWeight = 60;
-        colBatDau.HeaderText = "Giờ mở"; colBatDau.DataPropertyName = "ThoiGianBatDau"; colBatDau.FillWeight = 120;
-        colBatDau.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
-        colKetQua.HeaderText = "Điểm danh"; colKetQua.DataPropertyName = "KetQua";
-        // Reserved integration point for member 4
-        tabLichSu.Text = "Lịch sử điểm danh";
-        tabLichSu.Name = "tabLichSu";
+        dgvBuoiHoc.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvBuoiHoc.Size = new Size(1056, 254);
+        dgvBuoiHoc.TabIndex = 0;
+        dgvBuoiHoc.CurrentCellChanged += dgvBuoiHoc_CurrentCellChanged;
+        // 
+        // lblStatus
+        // 
+        lblStatus.Dock = DockStyle.Bottom;
+        lblStatus.Location = new Point(18, 334);
+        lblStatus.Name = "lblStatus";
+        lblStatus.Padding = new Padding(0, 12, 0, 0);
+        lblStatus.Size = new Size(1056, 54);
+        lblStatus.TabIndex = 1;
+        lblStatus.Text = "Danh sách sẽ được tải sau khi đăng nhập.";
+        // 
+        // lblNextStep
+        // 
+        lblNextStep.Dock = DockStyle.Bottom;
+        lblNextStep.ForeColor = Color.FromArgb(91, 108, 128);
+        lblNextStep.Location = new Point(18, 388);
+        lblNextStep.Name = "lblNextStep";
+        lblNextStep.Size = new Size(1056, 46);
+        lblNextStep.TabIndex = 2;
+        lblNextStep.Text = "Chọn buổi học để xác thực và nhập OTP.";
+        // 
+        // pnlActions
+        // 
+        pnlActions.Controls.Add(lblSection);
+        pnlActions.Controls.Add(btnRefresh);
+        pnlActions.Controls.Add(btnDiemDanh);
+        pnlActions.Controls.Add(chkXemThu);
+        pnlActions.Dock = DockStyle.Top;
+        pnlActions.Location = new Point(18, 18);
+        pnlActions.Name = "pnlActions";
+        pnlActions.Size = new Size(1056, 108);
+        pnlActions.TabIndex = 3;
+        // 
+        // lblSection
+        // 
+        lblSection.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+        lblSection.Location = new Point(0, 13);
+        lblSection.Name = "lblSection";
+        lblSection.Size = new Size(600, 34);
+        lblSection.TabIndex = 0;
+        lblSection.Text = "Buổi học đang mở";
+        lblSection.Click += lblSection_Click;
+        // 
+        // btnRefresh
+        // 
+        btnRefresh.BackColor = Color.FromArgb(24, 94, 177);
+        btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        btnRefresh.FlatStyle = FlatStyle.Flat;
+        btnRefresh.ForeColor = Color.White;
+        btnRefresh.Location = new Point(926, 6);
+        btnRefresh.Name = "btnRefresh";
+        btnRefresh.Size = new Size(130, 44);
+        btnRefresh.TabIndex = 1;
+        btnRefresh.Text = "Làm mới";
+        btnRefresh.UseVisualStyleBackColor = false;
+        btnRefresh.Click += btnRefresh_Click;
+        // Nút chọn buổi và chế độ xem thử không phụ thuộc form giảng viên.
+        btnDiemDanh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        btnDiemDanh.BackColor = Color.FromArgb(24, 117, 75);
+        btnDiemDanh.ForeColor = Color.White;
+        btnDiemDanh.FlatStyle = FlatStyle.Flat;
+        btnDiemDanh.Location = new Point(746, 6);
+        btnDiemDanh.Size = new Size(170, 44);
+        btnDiemDanh.Name = "btnDiemDanh";
+        btnDiemDanh.Text = "Vào điểm danh";
+        btnDiemDanh.Enabled = false;
+        btnDiemDanh.TabIndex = 2;
+        btnDiemDanh.Click += btnDiemDanh_Click;
+        chkXemThu.Location = new Point(0, 60);
+        chkXemThu.Size = new Size(710, 32);
+        chkXemThu.Name = "chkXemThu";
+        chkXemThu.Text = "Dùng buổi học mẫu để xem thử (không lưu SQL)";
+        chkXemThu.TabIndex = 3;
+        chkXemThu.CheckedChanged += chkXemThu_CheckedChanged;
+        // 
+        // tabLichSu
+        // 
         tabLichSu.BackColor = Color.White;
         tabLichSu.Controls.Add(lblHistory);
+        tabLichSu.Location = new Point(4, 32);
+        tabLichSu.Name = "tabLichSu";
+        tabLichSu.Size = new Size(192, 64);
+        tabLichSu.TabIndex = 1;
+        tabLichSu.Text = "Lịch sử điểm danh";
+        // 
+        // lblHistory
+        // 
         lblHistory.Dock = DockStyle.Fill;
-        lblHistory.TextAlign = ContentAlignment.MiddleCenter;
-        lblHistory.Text = "Lịch sử điểm danh và thống kê cá nhân\r\nChức năng đang được phát triển.";
         lblHistory.Font = new Font("Segoe UI", 14F);
         lblHistory.ForeColor = Color.FromArgb(91, 108, 128);
+        lblHistory.Location = new Point(0, 0);
+        lblHistory.Name = "lblHistory";
+        lblHistory.Size = new Size(192, 64);
+        lblHistory.TabIndex = 0;
+        lblHistory.Text = "Lịch sử điểm danh và thống kê cá nhân\r\nChức năng đang được phát triển.";
+        lblHistory.TextAlign = ContentAlignment.MiddleCenter;
+        // 
+        // clockTimer
+        // 
         clockTimer.Interval = 1000;
         clockTimer.Tick += clockTimer_Tick;
-        // Form
-        AutoScaleDimensions = new SizeF(8F, 23F);
+        // 
+        // FrmStudentMain
+        // 
+        AutoScaleDimensions = new SizeF(9F, 23F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1100, 720);
-        MinimumSize = new Size(1000, 650);
-        Font = new Font("Segoe UI", 10F);
-        ForeColor = Color.FromArgb(20, 49, 83);
         Controls.Add(tabs);
         Controls.Add(pnlProfile);
         Controls.Add(pnlHeader);
+        Font = new Font("Segoe UI", 10F);
+        ForeColor = Color.FromArgb(20, 49, 83);
+        MinimumSize = new Size(1000, 650);
         Name = "FrmStudentMain";
-        Text = "Sinh viên | Hệ thống điểm danh UTT";
         StartPosition = FormStartPosition.CenterScreen;
+        Text = "Sinh viên | Hệ thống điểm danh UTT";
         Load += FrmStudentMain_Load;
         pnlHeader.ResumeLayout(false);
         pnlProfile.ResumeLayout(false);
         tabs.ResumeLayout(false);
         tabDiemDanh.ResumeLayout(false);
-        tabLichSu.ResumeLayout(false);
-        pnlActions.ResumeLayout(false);
         ((System.ComponentModel.ISupportInitialize)dgvBuoiHoc).EndInit();
+        pnlActions.ResumeLayout(false);
+        tabLichSu.ResumeLayout(false);
         ResumeLayout(false);
     }
 
     private Panel pnlHeader, pnlProfile, pnlActions;
     private Label lblTitle, lblClock, lblHoTen, lblThongTin, lblEmail, lblSection, lblStatus, lblNextStep, lblHistory;
-    private Button btnLogout, btnRefresh;
+    private Button btnLogout, btnRefresh, btnDiemDanh;
+    private CheckBox chkXemThu;
     private TabControl tabs;
     private TabPage tabDiemDanh, tabLichSu;
     private DataGridView dgvBuoiHoc;
-    private DataGridViewTextBoxColumn colMon, colLop, colGiangVien, colPhong, colBatDau, colKetQua;
     private System.Windows.Forms.Timer clockTimer;
 }
 
