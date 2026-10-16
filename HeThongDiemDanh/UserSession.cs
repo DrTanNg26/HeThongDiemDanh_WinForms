@@ -9,9 +9,9 @@ namespace HeThongDiemDanh
     /// </summary>
     internal static class UserSession
     {
-        // -------------------------------------------------------
+        
         // Thông tin chung — mọi vai trò đều có
-        // -------------------------------------------------------
+      
 
         /// <summary>Tên đăng nhập = MaSV / MaGV / MaAD</summary>
         public static string TenDangNhap { get; set; }
@@ -24,9 +24,9 @@ namespace HeThongDiemDanh
 
         public static string MaKhoa { get; set; }
 
-        // -------------------------------------------------------
+       
         // Chỉ dùng cho Sinh viên
-        // -------------------------------------------------------
+      
 
         /// <summary>
         /// Dùng cho xác thực bước 2 (câu hỏi ngày sinh).
@@ -42,15 +42,15 @@ namespace HeThongDiemDanh
 
         public static string MaLopHanhChinh { get; set; }
 
-        // -------------------------------------------------------
+
         // Chỉ dùng cho Giảng viên
-        // -------------------------------------------------------
+
 
         public static string HocHamHocVi { get; set; }
 
-        // -------------------------------------------------------
+        // 
         // Kiểm tra nhanh vai trò (dùng trong code để tránh so chuỗi)
-        // -------------------------------------------------------
+        // 
 
         public static bool LaSinhVien => VaiTro == "SinhVien";
         public static bool LaGiangVien => VaiTro == "GiangVien";
@@ -58,9 +58,9 @@ namespace HeThongDiemDanh
 
         public static bool DaDangNhap => !string.IsNullOrEmpty(TenDangNhap);
 
-        // -------------------------------------------------------
+        // 
         // Xóa phiên khi đăng xuất
-        // -------------------------------------------------------
+        // 
         public static void Clear()
         {
             TenDangNhap = null;

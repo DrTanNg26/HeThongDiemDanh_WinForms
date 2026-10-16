@@ -33,7 +33,7 @@ namespace HeThongDiemDanh
             }
             catch
             {
-                // ignore load errors
+                //
             }
         }
 
@@ -103,6 +103,11 @@ namespace HeThongDiemDanh
             {
                 MessageBox.Show("Lỗi khi đăng ký tài khoản: " + ex.Message);
             }
+        }
+
+        private void lblTitle_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
