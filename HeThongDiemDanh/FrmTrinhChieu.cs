@@ -22,6 +22,7 @@ namespace HeThongDiemDanh
         private System.Windows.Forms.Timer? _realtimeTimer;
         private bool _dangCapNhatRealtime = false;
         private bool _daHetGioDungGio = false;
+        private bool _dangXuLyHetGio = false;
         private bool _daDongBuoi = false;
 
         // Controls giao diện
@@ -275,7 +276,7 @@ namespace HeThongDiemDanh
             }
         }
 
-        private void CountdownTimer_Tick(object? sender, EventArgs e)
+        private async void CountdownTimer_Tick(object? sender, EventArgs e)
         {
             // Giờ hiện tại được ánh xạ theo giờ Server
             DateTime hienTaiTheoServer = DateTime.Now + _serverTimeOffset;
@@ -292,24 +293,79 @@ namespace HeThongDiemDanh
                 {
                     lblCountdown.ForeColor = Color.Red;
                     lblTrangThai.ForeColor = Color.Red;
-                    lblTrangThai.Text = "Sắp hết thời gian điểm danh đúng giờ (< 2 phút)!";
+                    lblTrangThai.Text = "Sắp hết thời gian điểm danh (< 2 phút)!";
                 }
                 else
                 {
                     lblCountdown.ForeColor = Color.ForestGreen;
                     lblTrangThai.ForeColor = Color.DarkSlateGray;
-                    lblTrangThai.Text = "Đang nhận điểm danh đúng giờ...";
+                    lblTrangThai.Text = "Đang nhận điểm danh...";
                 }
             }
             else
             {
-                // Khi hết giờ
+                // Khi quá giờ điểm danh -> TỰ ĐỘNG ĐÓNG PHIÊN VÀ CHỐT DỮ LIỆU
+                if (_dangXuLyHetGio || _daDongBuoi) return;
+                _dangXuLyHetGio = true;
                 _daHetGioDungGio = true;
+
+                DungTimers();
                 lblCountdown.Text = "00:00";
-                lblCountdown.ForeColor = Color.DarkOrange;
-                lblTrangThai.ForeColor = Color.DarkOrange;
-                lblTrangThai.Text = "Hết giờ đúng giờ, đang nhận điểm danh muộn";
-                // Vẫn giữ hiển thị mã OTP để sinh viên đi muộn tiếp tục quét
+                lblCountdown.ForeColor = Color.Red;
+                lblTrangThai.ForeColor = Color.Red;
+                lblTrangThai.Text = "Đã hết thời gian điểm danh. Đang tự động kết thúc buổi học và chốt dữ liệu...";
+
+                await TuDongDongBuoiHocKhiHetGioAsync();
+            }
+        }
+
+        private async Task TuDongDongBuoiHocKhiHetGioAsync()
+        {
+            if (_daDongBuoi) return;
+
+            try
+            {
+                KetQuaDongBuoiHoc? kq = null;
+                await Task.Run(() =>
+                {
+                    kq = BuoiHocDAL.DongBuoiHoc(_maBuoiHoc);
+                });
+
+                _daDongBuoi = true;
+
+                if (this.IsDisposed || !this.IsHandleCreated) return;
+
+                if (kq != null)
+                {
+                    lblSiSo.Text = $"Sĩ số lớp: {kq.TongSiSo}";
+                    lblCoMat.Text = $"Đã có mặt: {kq.SoCoMat}";
+                    lblChuaDiemDanh.Text = $"Vắng: {kq.SoVang}";
+
+                    string thongBao = "========================================\n" +
+                                      "    HẾT GIỜ - TỰ ĐỘNG ĐÓNG PHIÊN\n" +
+                                      "========================================\n\n" +
+                                     $"Đã hết thời gian điểm danh ({_thoiGianDemNguocPhut} phút).\n" +
+                                      "Hệ thống đã tự động chốt danh sách và đóng phiên điểm danh:\n\n" +
+                                     $"- Lớp học phần: {_tenLop}\n" +
+                                     $"- Buổi học: {_tenBuoi}\n\n" +
+                                     $"• Tổng sĩ số lớp:      {kq.TongSiSo} sinh viên\n" +
+                                     $"• Số SV có mặt:       {kq.SoCoMat} sinh viên\n" +
+                                     $"• Số SV đi muộn:      {kq.SoDiMuon} sinh viên\n" +
+                                     $"• Số SV vắng mặt:     {kq.SoVang} sinh viên\n\n" +
+                                     $"Tổng số đã điểm danh: {kq.TongDaDiemDanh}/{kq.TongSiSo}\n" +
+                                      "========================================";
+
+                    MessageBox.Show(this, thongBao, "Hết giờ điểm danh", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                if (!this.IsDisposed)
+                {
+                    MessageBox.Show(this, "Lỗi khi tự động kết thúc buổi học: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -368,12 +424,16 @@ namespace HeThongDiemDanh
                         dgvRealtime.Rows[selectedIndex].Selected = true;
                     }
 
-                    // Nếu đã có sinh viên điểm danh -> Khóa nút "Hủy phiên này"
+                    // Luôn cho phép nút Hủy phiên hoạt động (kể cả khi đã có sinh viên điểm danh)
                     if (dtList.Rows.Count > 0)
                     {
-                        btnHuyPhien.Enabled = false;
-                        btnHuyPhien.Text = "Hủy phiên (đã có SV)";
+                        btnHuyPhien.Text = $"Hủy phiên ({dtList.Rows.Count} SV)";
                     }
+                    else
+                    {
+                        btnHuyPhien.Text = "Hủy phiên này";
+                    }
+                    btnHuyPhien.Enabled = true;
                 }
             }
             catch (Exception ex)
@@ -387,43 +447,60 @@ namespace HeThongDiemDanh
         }
 
         // =========================================================================================
-        // Nút Hủy phiên (Chỉ được phép nếu chưa có ai điểm danh)
+        // Nút Hủy phiên (Cho phép hủy phiên kể cả khi đã có sinh viên điểm danh)
         // =========================================================================================
         private void btnHuyPhien_Click(object? sender, EventArgs e)
         {
-            if (BuoiHocDAL.DaCoSinhVienDiemDanh(_maBuoiHoc))
+            if (_daDongBuoi) return;
+
+            bool daCoSV = BuoiHocDAL.DaCoSinhVienDiemDanh(_maBuoiHoc);
+            int soSV = daCoSV ? BuoiHocDAL.LaySoLuongSVDaDiemDanh(_maBuoiHoc) : 0;
+
+            string thongDiepXacNhan;
+            if (daCoSV)
             {
-                MessageBox.Show("Buổi học đã có sinh viên thực hiện điểm danh, không thể hủy phiên!\n" +
-                                "Vui lòng chọn 'KẾT THÚC BUỔI HỌC' để chốt dữ liệu.", 
-                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                btnHuyPhien.Enabled = false;
-                return;
+                thongDiepXacNhan = $"CẢNH BÁO: Buổi học này hiện đã có {soSV} sinh viên thực hiện điểm danh!\n\n" +
+                                   "Nếu bạn hủy phiên, TOÀN BỘ dữ liệu điểm danh của buổi học này sẽ bị XÓA HOÀN TOÀN khỏi hệ thống.\n\n" +
+                                   "Bạn có chắc chắn muốn hủy phiên điểm danh này không?";
+            }
+            else
+            {
+                thongDiepXacNhan = "Bạn có chắc chắn muốn hủy phiên điểm danh này không?\n" +
+                                   "Bản ghi buổi học chưa có sinh viên điểm danh sẽ được xóa khỏi hệ thống.";
             }
 
             DialogResult confirm = MessageBox.Show(
-                "Bạn có chắc chắn muốn hủy phiên điểm danh này không?\n" +
-                "Bản ghi buổi học chưa có điểm danh sẽ được xóa khỏi hệ thống.",
-                "Xác nhận hủy phiên",
+                this,
+                thongDiepXacNhan,
+                "Xác nhận hủy phiên điểm danh",
                 MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
+                daCoSV ? MessageBoxIcon.Warning : MessageBoxIcon.Question
             );
 
-            if (confirm == DialogResult.Yes)
+            if (confirm != DialogResult.Yes) return;
+
+            DungTimers();
+            try
             {
-                DungTimers();
                 bool thanhCong = BuoiHocDAL.HuyPhienDiemDanh(_maBuoiHoc);
                 if (thanhCong)
                 {
-                    MessageBox.Show("Đã hủy phiên điểm danh thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _daDongBuoi = true;
+                    MessageBox.Show(this, "Đã hủy phiên điểm danh và xóa dữ liệu thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Close();
                 }
                 else
                 {
-                    MessageBox.Show("Không thể hủy phiên (có thể vừa có sinh viên điểm danh).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, "Không thể hủy phiên điểm danh (phiên có thể đã bị đóng hoặc xóa trước đó).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     _countdownTimer?.Start();
                     _realtimeTimer?.Start();
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Lỗi khi hủy phiên: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _countdownTimer?.Start();
+                _realtimeTimer?.Start();
             }
         }
 
@@ -488,20 +565,35 @@ namespace HeThongDiemDanh
 
         private void FrmTrinhChieu_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            // Task 5.2: Bắt sự kiện FormClosing khi phiên đang mở
+            // Bắt sự kiện FormClosing khi phiên đang mở
             if (!_daDongBuoi)
             {
-                DialogResult confirm = MessageBox.Show(
-                    "Buổi điểm danh đang mở, bạn có chắc chắn muốn thoát màn hình trình chiếu?",
-                    "Cảnh báo đóng màn hình",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning
-                );
-
-                if (confirm != DialogResult.Yes)
+                DateTime hienTaiTheoServer = DateTime.Now + _serverTimeOffset;
+                DateTime thoiDiemHetHan = _thoiGianBatDauServer.AddMinutes(_thoiGianDemNguocPhut);
+                if (hienTaiTheoServer >= thoiDiemHetHan)
                 {
-                    e.Cancel = true;
-                    return;
+                    // Nếu đã quá giờ điểm danh thì tự động chốt và đóng phiên
+                    try
+                    {
+                        BuoiHocDAL.DongBuoiHoc(_maBuoiHoc);
+                        _daDongBuoi = true;
+                    }
+                    catch { }
+                }
+                else
+                {
+                    DialogResult confirm = MessageBox.Show(
+                        "Buổi điểm danh đang mở, bạn có chắc chắn muốn thoát màn hình trình chiếu?",
+                        "Cảnh báo đóng màn hình",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning
+                    );
+
+                    if (confirm != DialogResult.Yes)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
                 }
             }
 

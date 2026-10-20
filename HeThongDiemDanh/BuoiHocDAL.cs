@@ -39,19 +39,38 @@ namespace HeThongDiemDanh
     /// </summary>
     public static class BuoiHocDAL
     {
-        // 0. Tự động đóng các phiên bị bỏ quên/quá 4 tiếng (Task 5.3)
+        // 0. Tự động đóng các phiên đã quá giờ điểm danh hoặc quá hạn (Task 5.3)
         public static int TuDongDongPhienQuaHan()
         {
-            string sql = @"
-                UPDATE BuoiHoc 
-                SET TrangThai = N'DaDong' 
+            // Lấy danh sách các buổi học đang ở trạng thái 'Mo' nhưng đã hết thời gian điểm danh
+            string sqlLay = @"
+                SELECT MaBuoiHoc 
+                FROM BuoiHoc 
                 WHERE TrangThai = N'Mo' 
-                  AND DATEADD(MINUTE, @phut, ThoiGianBatDau) <= GETDATE()";
+                  AND (DATEADD(MINUTE, ThoiGianDemNguoc, ThoiGianBatDau) <= GETDATE()
+                       OR DATEADD(MINUTE, @phut, ThoiGianBatDau) <= GETDATE())";
 
-            return DatabaseConnection.ExecuteNonQuery(sql, new[]
+            DataTable dt = DatabaseConnection.ExecuteQuery(sqlLay, new[]
             {
                 new SqlParameter("@phut", AppConfig.GioiHanTuDongDongPhien)
             });
+
+            int soPhienDaDong = 0;
+            foreach (DataRow row in dt.Rows)
+            {
+                int maBuoi = Convert.ToInt32(row["MaBuoiHoc"]);
+                try
+                {
+                    DongBuoiHoc(maBuoi);
+                    soPhienDaDong++;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Lỗi tự động đóng buổi {maBuoi}: {ex.Message}");
+                }
+            }
+
+            return soPhienDaDong;
         }
 
         // 1. Lấy danh sách lớp kèm sĩ số do giảng viên phụ trách
@@ -84,33 +103,36 @@ namespace HeThongDiemDanh
             return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sql, new[] { new SqlParameter("@ma", maLopHP) }) ?? 1);
         }
 
-        // 4. Kiểm tra lớp có phiên đang mở chưa đóng (< 4 tiếng)
+        // 4. Kiểm tra lớp có phiên đang mở chưa đóng (trong thời gian điểm danh)
         public static bool KiemTraLopDangCoPhienMo(string maLopHP)
         {
+            // Tự động đóng các phiên đã quá giờ điểm danh trước khi kiểm tra
+            TuDongDongPhienQuaHan();
+
             string sql = @"
                 SELECT COUNT(1) FROM BuoiHoc 
                 WHERE MaLopHP = @ma AND TrangThai = N'Mo' 
-                  AND DATEADD(MINUTE, @phut, ThoiGianBatDau) > GETDATE()";
+                  AND DATEADD(MINUTE, ThoiGianDemNguoc, ThoiGianBatDau) > GETDATE()";
 
             return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sql, new[]
             {
-                new SqlParameter("@ma", maLopHP),
-                new SqlParameter("@phut", AppConfig.GioiHanTuDongDongPhien)
+                new SqlParameter("@ma", maLopHP)
             }) ?? 0) > 0;
         }
 
         // 5. Kiểm tra mã OTP có đang trùng với phiên mở khác không
         public static bool KiemTraTrungOTP(string maOTP)
         {
+            TuDongDongPhienQuaHan();
+
             string sql = @"
                 SELECT COUNT(1) FROM BuoiHoc 
                 WHERE MaOTP = @otp AND TrangThai = N'Mo' 
-                  AND DATEADD(MINUTE, @phut, ThoiGianBatDau) > GETDATE()";
+                  AND DATEADD(MINUTE, ThoiGianDemNguoc, ThoiGianBatDau) > GETDATE()";
 
             return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sql, new[]
             {
-                new SqlParameter("@otp", maOTP),
-                new SqlParameter("@phut", AppConfig.GioiHanTuDongDongPhien)
+                new SqlParameter("@otp", maOTP)
             }) ?? 0) > 0;
         }
 
@@ -178,20 +200,57 @@ namespace HeThongDiemDanh
             return (daCoMat, Math.Max(0, siSo - daCoMat), siSo);
         }
 
-        // 11. Kiểm tra xem buổi học đã có sinh viên nào điểm danh chưa
-        public static bool DaCoSinhVienDiemDanh(int maBuoiHoc)
+        // 11. Kiểm tra xem buổi học đã có sinh viên nào điểm danh chưa và số lượng
+        public static int LaySoLuongSVDaDiemDanh(int maBuoiHoc)
         {
             string sqlCheck = "SELECT COUNT(1) FROM DiemDanh WHERE MaBuoiHoc = @ma";
-            return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sqlCheck, new[] { new SqlParameter("@ma", maBuoiHoc) }) ?? 0) > 0;
+            return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sqlCheck, new[] { new SqlParameter("@ma", maBuoiHoc) }) ?? 0);
         }
 
-        // 12. Hủy phiên nếu chưa có sinh viên nào điểm danh
+        public static bool DaCoSinhVienDiemDanh(int maBuoiHoc)
+        {
+            return LaySoLuongSVDaDiemDanh(maBuoiHoc) > 0;
+        }
+
+        // 12. Hủy phiên điểm danh (xóa toàn bộ dữ liệu điểm danh liên quan nếu có SV đã quét)
         public static bool HuyPhienDiemDanh(int maBuoiHoc)
         {
-            if (DaCoSinhVienDiemDanh(maBuoiHoc)) return false;
+            using SqlConnection conn = DatabaseConnection.GetConnection();
+            conn.Open();
+            using SqlTransaction tran = conn.BeginTransaction();
+            try
+            {
+                // 1. Xóa các bản ghi điểm danh của buổi học này trước (để không vi phạm khóa ngoại)
+                string sqlXoaDiemDanh = "DELETE FROM DiemDanh WHERE MaBuoiHoc = @ma";
+                using (SqlCommand cmdDD = new SqlCommand(sqlXoaDiemDanh, conn, tran))
+                {
+                    cmdDD.Parameters.Add(new SqlParameter("@ma", maBuoiHoc));
+                    cmdDD.ExecuteNonQuery();
+                }
 
-            string sqlXoa = "DELETE FROM BuoiHoc WHERE MaBuoiHoc = @ma AND TrangThai = N'Mo'";
-            return DatabaseConnection.ExecuteNonQuery(sqlXoa, new[] { new SqlParameter("@ma", maBuoiHoc) }) > 0;
+                // 2. Xóa bản ghi buổi học đang mở
+                string sqlXoaBuoiHoc = "DELETE FROM BuoiHoc WHERE MaBuoiHoc = @ma AND TrangThai = N'Mo'";
+                int affected = 0;
+                using (SqlCommand cmdBH = new SqlCommand(sqlXoaBuoiHoc, conn, tran))
+                {
+                    cmdBH.Parameters.Add(new SqlParameter("@ma", maBuoiHoc));
+                    affected = cmdBH.ExecuteNonQuery();
+                }
+
+                if (affected > 0)
+                {
+                    tran.Commit();
+                    return true;
+                }
+
+                tran.Rollback();
+                return false;
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
         }
 
         // 12. Đóng buổi học qua Stored Procedure sp_DongBuoiHoc
@@ -222,19 +281,21 @@ namespace HeThongDiemDanh
         // 13. Khôi phục phiên chưa đóng khi giảng viên mở lại app
         public static ThongTinBuoiHoc? LayPhienDangMoCuaGiangVien(string maGV)
         {
+            // Tự động đóng các phiên đã quá giờ điểm danh
+            TuDongDongPhienQuaHan();
+
             string sql = @"
                 SELECT TOP 1 bh.*, lhp.TenLopHP,
                        (SELECT COUNT(1) FROM ChiTietLopHP ct WHERE ct.MaLopHP = bh.MaLopHP) AS TongSiSo
                 FROM BuoiHoc bh
                 INNER JOIN LopHocPhan lhp ON bh.MaLopHP = lhp.MaLopHP
                 WHERE lhp.MaGV = @maGV AND bh.TrangThai = N'Mo'
-                  AND DATEADD(MINUTE, @phut, bh.ThoiGianBatDau) > GETDATE()
+                  AND DATEADD(MINUTE, bh.ThoiGianDemNguoc, bh.ThoiGianBatDau) > GETDATE()
                 ORDER BY bh.ThoiGianBatDau DESC";
 
             DataTable dt = DatabaseConnection.ExecuteQuery(sql, new[]
             {
-                new SqlParameter("@maGV", maGV),
-                new SqlParameter("@phut", AppConfig.GioiHanTuDongDongPhien)
+                new SqlParameter("@maGV", maGV)
             });
 
             return dt.Rows.Count > 0 ? MapThongTinBuoiHoc(dt.Rows[0]) : null;

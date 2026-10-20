@@ -22,7 +22,7 @@ namespace HeThongDiemDanh
             sql += "LEFT JOIN DiemDanh dd ON dd.MaBuoiHoc = bh.MaBuoiHoc AND dd.MaSV = ct.MaSV ";
             sql += "WHERE ct.MaSV = @MaSV AND bh.TrangThai = N'Mo' ";
             sql += "AND bh.ThoiGianBatDau <= GETDATE() ";
-            sql += "AND DATEADD(MINUTE, @GioiHanPhut, bh.ThoiGianBatDau) > GETDATE() ";
+            sql += "AND DATEADD(MINUTE, bh.ThoiGianDemNguoc, bh.ThoiGianBatDau) > GETDATE() ";
             sql += "ORDER BY bh.ThoiGianBatDau DESC, bh.MaBuoiHoc DESC";
 
             // 2. Tạo kết nối và câu lệnh. using sẽ tự đóng, kể cả khi có lỗi.
@@ -31,7 +31,6 @@ namespace HeThongDiemDanh
             {
                 // Truyền giá trị riêng bằng tham số, không nối dữ liệu người dùng vào SQL.
                 cmd.Parameters.Add("@MaSV", SqlDbType.VarChar, 10).Value = maSV;
-                cmd.Parameters.Add("@GioiHanPhut", SqlDbType.Int).Value = AppConfig.GioiHanTuDongDongPhien;
 
                 // 3. Mở kết nối và đọc dữ liệu mà không làm đứng giao diện.
                 await con.OpenAsync(cancellationToken);
