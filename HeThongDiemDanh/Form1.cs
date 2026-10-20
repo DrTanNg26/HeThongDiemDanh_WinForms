@@ -88,13 +88,13 @@ namespace HeThongDiemDanh
 
             var row = dt.Rows[0];
 
-            string tt = row["TrangThai"] != System.DBNull.Value ? row["TrangThai"].ToString() : "";
-            if (tt == "Bị khóa")
+            string tt = row["TrangThai"] != System.DBNull.Value ? row["TrangThai"].ToString().Trim() : "";
+            if (string.Equals(tt, "Bị khóa", StringComparison.OrdinalIgnoreCase))
             { MessageBox.Show("Tài khoản đang bị khóa. Vui lòng liên hệ Admin!"); return; }
-            if (tt == "Chờ")
+            if (string.Equals(tt, "Chờ", StringComparison.OrdinalIgnoreCase))
             { MessageBox.Show("Tài khoản của bạn đang ở trạng thái 'Chờ' duyệt từ Admin. Vui lòng quay lại sau!"); return; }
-            if (tt != "Hoạt động")
-            { MessageBox.Show("Tài khoản không ở trạng thái hoạt động!"); return; }
+            if (!string.Equals(tt, "Hoạt động", StringComparison.OrdinalIgnoreCase) && !string.Equals(tt, "Hoat dong", StringComparison.OrdinalIgnoreCase))
+            { MessageBox.Show($"Tài khoản không ở trạng thái hoạt động! (Trạng thái hiện tại: {tt})"); return; }
 
             // So sánh mật khẩu (Hỗ trợ cả SHA256 và Plaintext tạm thời để tránh làm vỡ dữ liệu mẫu cũ)
             var storedPwd = row.Table.Columns.Contains("MatKhau") && row["MatKhau"] != System.DBNull.Value
@@ -169,8 +169,37 @@ namespace HeThongDiemDanh
                 return;
             }
 
-            // Giảng viên: chờ tích hợp màn hình của thành viên 2.
+            if (UserSession.LaGiangVien)
+            {
+                OpenTeacherMain();
+                return;
+            }
+
             this.Hide();
+        }
+
+        private void OpenTeacherMain()
+        {
+            try
+            {
+                using (FrmGiangVienMain frmGV = new FrmGiangVienMain())
+                {
+                    this.Hide();
+                    frmGV.ShowDialog();
+                }
+            }
+            finally
+            {
+                UserSession.Clear();
+                MatKhau_tb.Clear();
+                if (!this.IsDisposed && !this.Disposing)
+                {
+                    this.Show();
+                    this.Activate();
+                    CenterLoginPanel();
+                    MatKhau_tb.Focus();
+                }
+            }
         }
 
         private void OpenStudentMain()

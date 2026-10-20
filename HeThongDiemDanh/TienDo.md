@@ -168,19 +168,31 @@ Medium / Nice-to-have
   - MonHocDAL.cs
   - FrmThemSuaTaiKhoan.Designer.cs, FrmThemSuaTaiKhoan.cs
   - TienDo.md (tệp này)
+  - BuoiHocDAL.cs (Thành viên 2: Quản lý buổi học, điểm danh, realtime, tự động đóng phiên quá hạn)
+  - UcMoPhien.cs, UcMoPhien.Designer.cs (Thành viên 2: Tab mở phiên điểm danh cho giảng viên)
+  - FrmGiangVienMain.cs, FrmGiangVienMain.Designer.cs (Thành viên 2: Màn hình chủ giảng viên, khôi phục phiên)
+  - FrmTrinhChieu.cs (Thành viên 2: Màn hình trình chiếu OTP, đồng hồ server, DataGridView realtime, kết thúc buổi học)
+  - SQL script/sp_DongBuoiHoc.sql (Thành viên 2: Stored Procedure đóng buổi học, đánh Vắng tự động và thống kê)
 
 - Sửa:
-  - Form1.cs (login flow)
+  - Form1.cs (login flow: mở FrmGiangVienMain khi vai trò là GiangVien, chuẩn hóa so sánh trạng thái)
+  - App.config (chuẩn hóa kết nối QlyDiemDanh)
 
 ---
 
-## 9) Ghi chú kỹ thuật & khuyến nghị
+## 10) Tiến độ Phân hệ Giảng viên — Thành viên 2 (Đã hoàn thành 100%)
+- [x] **Module 1**: Cơ sở dữ liệu & Tầng DAL (`BuoiHocDAL.cs`, `sp_DongBuoiHoc.sql`).
+- [x] **Module 2**: Giao diện & Nghiệp vụ Mở phiên (`UcMoPhien.cs`, `FrmGiangVienMain.cs`).
+- [x] **Module 3**: Màn hình Trình chiếu Realtime (`FrmTrinhChieu.cs` - OTP lớn, đồng hồ đếm ngược đồng bộ giờ server, Grid check-in realtime mượt mà qua async/await).
+- [x] **Module 4**: Nghiệp vụ Đóng & Tổng kết Buổi học (Xác nhận, gọi `sp_DongBuoiHoc`, thống kê Có mặt / Muộn / Vắng).
+- [x] **Module 5**: Xử lý ngoại lệ, Phục hồi phiên & Bàn giao (Crash Recovery khi mở lại app, cảnh báo FormClosing, hàm tự động đóng phiên quá 4 giờ `TuDongDongPhienQuaHan`).
+
+---
+
+## 11) Ghi chú kỹ thuật & khuyến nghị
 
 - Bảo mật: luôn lưu hash mật khẩu (PasswordHelper.BamSHA256). Không bao giờ lưu mật khẩu plaintext trong DB hoặc log.
-- Transaction: mọi thao tác tác động 2 bảng trở lên (ví dụ tạo tài khoản và thêm chi tiết SinhVien/GiangVien) phải dùng SqlTransaction — đã tuân theo trong TaiKhoanService.
+- Transaction: mọi thao tác tác động 2 bảng trở lên (ví dụ tạo tài khoản và thêm chi tiết SinhVien/GiangVien, đóng buổi học đánh vắng SV) phải dùng SqlTransaction.
 - Kiểm tra quyền DB: user trong connection string phải có quyền INSERT/UPDATE/DELETE/SELECT theo yêu cầu.
-- Schema drift: nếu bạn restore DB từ file SQL (QlySinhVien vs QlyDiemDanh) hãy xác nhận `Initial Catalog` trong `App.config` khớp với DB đã restore.
+- Schema drift: nếu bạn restore DB từ file SQL hãy xác nhận `Initial Catalog` trong `App.config` khớp với DB đã restore.
 
----
-
-Nếu bạn muốn tôi tiếp tục thực hiện nhiệm vụ tiếp theo ngay bây giờ, hãy chọn một trong các mục trong phần "Nhiệm vụ tiếp theo" (ví dụ: "Hoàn thiện Edit tài khoản" hoặc "Cập nhật đăng nhập dùng hash"), tôi sẽ tiếp tục và cập nhật TienDo.md khi hoàn tất từng bước.

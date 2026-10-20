@@ -28,66 +28,88 @@ namespace HeThongDiemDanh
             btnDong = new Button();
             timerDong = new System.Windows.Forms.Timer(components);
             SuspendLayout();
-            lblTieuDe.Name = "lblTieuDe";
-            lblTieuDe.Text = "Nhập mã điểm danh";
-            lblTieuDe.Location = new Point(30, 24);
-            lblTieuDe.Size = new Size(550, 44);
+            // 
+            // lblTieuDe
+            // 
             lblTieuDe.Font = new Font("Segoe UI", 22F);
-            lblMonHoc.Name = "lblMonHoc";
-            lblMonHoc.Text = "Môn học";
-            lblMonHoc.Location = new Point(30, 82);
-            lblMonHoc.Size = new Size(550, 36);
+            lblTieuDe.Location = new Point(30, 24);
+            lblTieuDe.Name = "lblTieuDe";
+            lblTieuDe.Size = new Size(550, 44);
+            lblTieuDe.TabIndex = 0;
+            lblTieuDe.Text = "Nhập mã điểm danh";
+            // 
+            // lblMonHoc
+            // 
             lblMonHoc.Font = new Font("Segoe UI", 12F);
-            txtOTP.Name = "txtOTP";
-            txtOTP.Location = new Point(30, 130);
-            txtOTP.Size = new Size(550, 56);
-            txtOTP.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            lblMonHoc.Location = new Point(30, 82);
+            lblMonHoc.Name = "lblMonHoc";
+            lblMonHoc.Size = new Size(550, 36);
+            lblMonHoc.TabIndex = 1;
+            lblMonHoc.Text = "Môn học";
+            // 
+            // txtOTP
+            // 
             txtOTP.CharacterCasing = CharacterCasing.Upper;
+            txtOTP.Font = new Font("Segoe UI", 22F, FontStyle.Bold);
+            txtOTP.Location = new Point(30, 130);
             txtOTP.MaxLength = 6;
+            txtOTP.Name = "txtOTP";
+            txtOTP.Size = new Size(550, 56);
             txtOTP.TabIndex = 0;
-            lblHuongDan.Name = "lblHuongDan";
-            lblHuongDan.Text = "";
-            lblHuongDan.Location = new Point(30, 199);
-            lblHuongDan.Size = new Size(550, 60);
+            txtOTP.TextChanged += txtOTP_TextChanged;
+            // 
+            // lblHuongDan
+            // 
             lblHuongDan.Font = new Font("Segoe UI", 10F);
-            lblThongBao.Name = "lblThongBao";
-            lblThongBao.Text = "";
-            lblThongBao.Location = new Point(30, 270);
-            lblThongBao.Size = new Size(550, 75);
+            lblHuongDan.Location = new Point(30, 199);
+            lblHuongDan.Name = "lblHuongDan";
+            lblHuongDan.Size = new Size(550, 60);
+            lblHuongDan.TabIndex = 2;
+            // 
+            // lblThongBao
+            // 
             lblThongBao.Font = new Font("Segoe UI", 10F);
-            btnXacNhan.Name = "btnXacNhan";
-            btnXacNhan.Text = "Xác nhận điểm danh";
-            btnXacNhan.Location = new Point(30, 366);
-            btnXacNhan.Size = new Size(330, 46);
-            btnXacNhan.FlatStyle = FlatStyle.Flat;
-            btnXacNhan.Click += btnXacNhan_Click;
+            lblThongBao.Location = new Point(30, 270);
+            lblThongBao.Name = "lblThongBao";
+            lblThongBao.Size = new Size(550, 75);
+            lblThongBao.TabIndex = 3;
+            // 
+            // btnXacNhan
+            // 
             btnXacNhan.BackColor = Color.FromArgb(24, 94, 177);
+            btnXacNhan.FlatStyle = FlatStyle.Flat;
             btnXacNhan.ForeColor = Color.White;
-            btnDong.Name = "btnDong";
-            btnDong.Text = "Hủy";
-            btnDong.Location = new Point(420, 366);
-            btnDong.Size = new Size(160, 46);
-            btnDong.FlatStyle = FlatStyle.Flat;
-            btnDong.Click += btnDong_Click;
+            btnXacNhan.Location = new Point(30, 366);
+            btnXacNhan.Name = "btnXacNhan";
+            btnXacNhan.Size = new Size(330, 46);
             btnXacNhan.TabIndex = 1;
+            btnXacNhan.Text = "Xác nhận điểm danh";
+            btnXacNhan.UseVisualStyleBackColor = false;
+            btnXacNhan.Click += btnXacNhan_Click;
+            // 
+            // btnDong
+            // 
+            btnDong.FlatStyle = FlatStyle.Flat;
+            btnDong.Location = new Point(420, 366);
+            btnDong.Name = "btnDong";
+            btnDong.Size = new Size(160, 46);
             btnDong.TabIndex = 2;
+            btnDong.Text = "Hủy";
+            btnDong.Click += btnDong_Click;
+            // 
+            // timerDong
+            // 
             timerDong.Interval = 3000;
             timerDong.Tick += timerDong_Tick;
+            // 
+            // FrmNhapOTP
+            // 
+            AcceptButton = btnXacNhan;
             AutoScaleDimensions = new SizeF(9F, 23F);
             AutoScaleMode = AutoScaleMode.Font;
-            Font = new Font("Segoe UI", 10F);
             BackColor = Color.White;
-            ForeColor = Color.FromArgb(20, 49, 83);
-            ClientSize = new Size(610, 442);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            StartPosition = FormStartPosition.CenterParent;
-            Name = "FrmNhapOTP";
-            Text = "Bước 2 • Điểm danh";
-            AcceptButton = btnXacNhan;
             CancelButton = btnDong;
-            FormClosing += FrmNhapOTP_FormClosing;
+            ClientSize = new Size(610, 442);
             Controls.Add(lblTieuDe);
             Controls.Add(lblMonHoc);
             Controls.Add(txtOTP);
@@ -95,6 +117,15 @@ namespace HeThongDiemDanh
             Controls.Add(lblThongBao);
             Controls.Add(btnXacNhan);
             Controls.Add(btnDong);
+            Font = new Font("Segoe UI", 10F);
+            ForeColor = Color.FromArgb(20, 49, 83);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FrmNhapOTP";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Bước 2 • Điểm danh";
+            FormClosing += FrmNhapOTP_FormClosing;
             ResumeLayout(false);
             PerformLayout();
         }

@@ -152,5 +152,10 @@ namespace HeThongDiemDanh
             timerDong.Stop();
             traLoiXacThuc = "";
         }
+
+        private void txtOTP_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

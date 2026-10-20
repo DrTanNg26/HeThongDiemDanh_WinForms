@@ -39,6 +39,21 @@ namespace HeThongDiemDanh
     /// </summary>
     public static class BuoiHocDAL
     {
+        // 0. Tự động đóng các phiên bị bỏ quên/quá 4 tiếng (Task 5.3)
+        public static int TuDongDongPhienQuaHan()
+        {
+            string sql = @"
+                UPDATE BuoiHoc 
+                SET TrangThai = N'DaDong' 
+                WHERE TrangThai = N'Mo' 
+                  AND DATEADD(MINUTE, @phut, ThoiGianBatDau) <= GETDATE()";
+
+            return DatabaseConnection.ExecuteNonQuery(sql, new[]
+            {
+                new SqlParameter("@phut", AppConfig.GioiHanTuDongDongPhien)
+            });
+        }
+
         // 1. Lấy danh sách lớp kèm sĩ số do giảng viên phụ trách
         public static DataTable LayDanhSachLopTheoGiangVien(string maGV)
         {
@@ -163,12 +178,17 @@ namespace HeThongDiemDanh
             return (daCoMat, Math.Max(0, siSo - daCoMat), siSo);
         }
 
-        // 11. Hủy phiên nếu chưa có sinh viên nào điểm danh
-        public static bool HuyPhienDiemDanh(int maBuoiHoc)
+        // 11. Kiểm tra xem buổi học đã có sinh viên nào điểm danh chưa
+        public static bool DaCoSinhVienDiemDanh(int maBuoiHoc)
         {
             string sqlCheck = "SELECT COUNT(1) FROM DiemDanh WHERE MaBuoiHoc = @ma";
-            int count = Convert.ToInt32(DatabaseConnection.ExecuteScalar(sqlCheck, new[] { new SqlParameter("@ma", maBuoiHoc) }) ?? 0);
-            if (count > 0) return false;
+            return Convert.ToInt32(DatabaseConnection.ExecuteScalar(sqlCheck, new[] { new SqlParameter("@ma", maBuoiHoc) }) ?? 0) > 0;
+        }
+
+        // 12. Hủy phiên nếu chưa có sinh viên nào điểm danh
+        public static bool HuyPhienDiemDanh(int maBuoiHoc)
+        {
+            if (DaCoSinhVienDiemDanh(maBuoiHoc)) return false;
 
             string sqlXoa = "DELETE FROM BuoiHoc WHERE MaBuoiHoc = @ma AND TrangThai = N'Mo'";
             return DatabaseConnection.ExecuteNonQuery(sqlXoa, new[] { new SqlParameter("@ma", maBuoiHoc) }) > 0;
