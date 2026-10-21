@@ -8,13 +8,6 @@ namespace HeThongDiemDanh
     /// </summary>
     public static class AppConfig
     {
-        /// <summary>
-        /// true = bỏ qua kiểm tra IP Wi-Fi khi test trên 1 máy.
-        /// Đổi thành false trong App.config trước khi demo thật.
-        /// </summary>
-        public static bool TestMode
-            => ConfigurationManager.AppSettings["TestMode"] == "true";
-
         /// <summary>Số phút đếm ngược mặc định khi mở phiên điểm danh (mặc định 10).</summary>
         public static int ThoiGianDemNguoc
             => int.Parse(ConfigurationManager.AppSettings["ThoiGianDemNguoc"] ?? "10");

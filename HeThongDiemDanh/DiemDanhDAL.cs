@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -35,7 +35,7 @@ namespace HeThongDiemDanh
             sql += "WHERE sv.MaSV = @MaSV AND bh.MaBuoiHoc = @MaBuoiHoc ";
             sql += "AND tk.VaiTro = N'SinhVien' AND tk.TrangThai = N'Hoạt động' ";
             sql += "AND bh.TrangThai = N'Mo' AND bh.ThoiGianBatDau <= @HienTai ";
-            sql += "AND DATEADD(MINUTE, @GioiHanPhut, bh.ThoiGianBatDau) > @HienTai";
+            sql += "AND DATEADD(MINUTE, bh.ThoiGianDemNguoc, bh.ThoiGianBatDau) > @HienTai";
 
             try
             {
@@ -90,7 +90,6 @@ namespace HeThongDiemDanh
                 throw new InvalidOperationException("Thông tin xác thực không hợp lệ. Hãy xác thực lại.");
             }
 
-            bool boQuaIP = AppConfig.TestMode;
             int gioiHanPhut = LayGioiHanPhut();
             try
             {
@@ -98,51 +97,7 @@ namespace HeThongDiemDanh
                 {
                     await con.OpenAsync(token);
 
-                    // 1. Lấy mạng của giảng viên. Thủ tục vẫn kiểm tra lại toàn bộ khi ghi.
-                    string ipGiangVien = string.Empty;
-                    string maskGiangVien = string.Empty;
-                    string sql = "SELECT IP_GV, SubnetMask_GV FROM dbo.BuoiHoc WHERE MaBuoiHoc = @MaBuoiHoc";
-                    using (SqlCommand cmd = new SqlCommand(sql, con))
-                    {
-                        cmd.Parameters.Add("@MaBuoiHoc", SqlDbType.Int).Value = maBuoiHoc;
-                        using (SqlDataReader dr = await cmd.ExecuteReaderAsync(token))
-                        {
-                            if (!await dr.ReadAsync(token))
-                            {
-                                throw new InvalidOperationException("Buổi học không còn tồn tại. Hãy làm mới danh sách.");
-                            }
-                            ipGiangVien = dr.GetString(0);
-                            if (!dr.IsDBNull(1))
-                            {
-                                maskGiangVien = dr.GetString(1);
-                            }
-                        }
-                    }
-
-                    // 2. Duyệt từng card mạng thật, chọn địa chỉ cùng mạng với giảng viên.
-                    // Chế độ test chỉ bỏ kiểm tra mạng, vẫn kiểm tra OTP, hồ sơ và phiên.
-                    List<ThongTinMang> cacMang = NetworkHelper.LayDanhSachMang();
-                    string ipSinhVien = string.Empty;
-                    foreach (ThongTinMang mang in cacMang)
-                    {
-                        if (NetworkHelper.CungMang(mang.DiaChiIP, ipGiangVien, maskGiangVien))
-                        {
-                            ipSinhVien = mang.DiaChiIP;
-                            break;
-                        }
-                    }
-
-                    if (ipSinhVien == string.Empty)
-                    {
-                        if (!boQuaIP)
-                        {
-                            throw new InvalidOperationException("Không tìm thấy mạng Wi-Fi/Ethernet cùng mạng với giảng viên. Hãy kết nối mạng lớp học; giảng viên cần lưu đúng IP và subnet mask khi mở buổi.");
-                        }
-                        if (cacMang.Count > 0)
-                        {
-                            ipSinhVien = cacMang[0].DiaChiIP;
-                        }
-                    }
+                    ThongTinMang mang = await LayMangCungGiangVienAsync(con, maBuoiHoc, token);
 
                     // 3. SQL Server dùng giờ máy chủ và một giao dịch để chống ghi trùng.
                     using (SqlCommand cmd = new SqlCommand("dbo.sp_GhiNhanDiemDanh", con))
@@ -153,15 +108,8 @@ namespace HeThongDiemDanh
                         cmd.Parameters.Add("@MaOTP", SqlDbType.VarChar, 10).Value = otp;
                         cmd.Parameters.Add("@LoaiCauHoi", SqlDbType.VarChar, 20).Value = loaiCauHoi;
                         cmd.Parameters.Add("@TraLoi", SqlDbType.NVarChar, 100).Value = traLoi;
-                        if (ipSinhVien == string.Empty)
-                        {
-                            cmd.Parameters.Add("@IP_SV", SqlDbType.VarChar, 50).Value = DBNull.Value;
-                        }
-                        else
-                        {
-                            cmd.Parameters.Add("@IP_SV", SqlDbType.VarChar, 50).Value = ipSinhVien;
-                        }
-                        cmd.Parameters.Add("@BoQuaKiemTraIP", SqlDbType.Bit).Value = boQuaIP;
+                        cmd.Parameters.Add("@IP_SV", SqlDbType.VarChar, 50).Value = mang.DiaChiIP;
+                        cmd.Parameters.Add("@BoQuaKiemTraIP", SqlDbType.Bit).Value = false;
                         cmd.Parameters.Add("@GioiHanPhut", SqlDbType.Int).Value = gioiHanPhut;
 
                         object? ketQua = await cmd.ExecuteScalarAsync(token);
@@ -178,6 +126,63 @@ namespace HeThongDiemDanh
             {
                 throw TaoLoiDeHieu(ex);
             }
+        }
+
+        public static async Task<ThongTinMang> KiemTraMangAsync(int maBuoiHoc, CancellationToken token)
+        {
+            try
+            {
+                using (SqlConnection con = DatabaseConnection.GetConnection())
+                {
+                    await con.OpenAsync(token);
+                    return await LayMangCungGiangVienAsync(con, maBuoiHoc, token);
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw TaoLoiDeHieu(ex);
+            }
+        }
+
+        private static async Task<ThongTinMang> LayMangCungGiangVienAsync(SqlConnection con,
+            int maBuoiHoc, CancellationToken token)
+        {
+            string ipGiangVien = "";
+            string maskGiangVien = "";
+            string sql = "SELECT IP_GV, SubnetMask_GV FROM dbo.BuoiHoc WHERE MaBuoiHoc = @MaBuoiHoc";
+            using (SqlCommand cmd = new SqlCommand(sql, con))
+            {
+                cmd.Parameters.Add("@MaBuoiHoc", SqlDbType.Int).Value = maBuoiHoc;
+                using (SqlDataReader dr = await cmd.ExecuteReaderAsync(token))
+                {
+                    if (!await dr.ReadAsync(token))
+                    {
+                        throw new InvalidOperationException("Buổi học không còn tồn tại. Hãy làm mới danh sách.");
+                    }
+                    if (!dr.IsDBNull(0)) ipGiangVien = dr.GetString(0);
+                    if (!dr.IsDBNull(1)) maskGiangVien = dr.GetString(1);
+                }
+            }
+            if (!NetworkHelper.CungMang(ipGiangVien, ipGiangVien, maskGiangVien))
+            {
+                throw new InvalidOperationException("Buổi học chưa có IP hoặc subnet mask hợp lệ. Hãy báo giảng viên mở lại buổi trên mạng phòng học.");
+            }
+
+            List<ThongTinMang> cacMang = NetworkHelper.LayDanhSachMang();
+            if (cacMang.Count == 0)
+            {
+                throw new InvalidOperationException("Chưa tìm thấy Wi-Fi/Ethernet đang kết nối. Hãy kết nối mạng phòng học rồi thử lại.");
+            }
+            foreach (ThongTinMang mang in cacMang)
+            {
+                // Hai địa chỉ phải cùng subnet xét theo cả mask của GV và SV.
+                if (NetworkHelper.CungMang(mang.DiaChiIP, ipGiangVien, maskGiangVien)
+                    && NetworkHelper.CungMang(mang.DiaChiIP, ipGiangVien, mang.SubnetMask))
+                {
+                    return mang;
+                }
+            }
+            throw new InvalidOperationException("Bạn chưa cùng mạng với giảng viên. Hãy kết nối Wi-Fi/LAN phòng học rồi bấm Kiểm tra mạng.");
         }
 
         private static bool KiemTraDinhDang(string loaiCauHoi, string traLoi, out DateTime ngaySinh)

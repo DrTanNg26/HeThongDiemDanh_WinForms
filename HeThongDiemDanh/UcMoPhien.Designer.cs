@@ -6,6 +6,7 @@ namespace HeThongDiemDanh
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing) DungTheoDoi();
             if (disposing && (components != null))
             {
                 components.Dispose();
@@ -15,6 +16,11 @@ namespace HeThongDiemDanh
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            this.timerPhien = new System.Windows.Forms.Timer(this.components);
+            this.btnTrinhChieu = new System.Windows.Forms.Button();
+            this.btnKetThucPhien = new System.Windows.Forms.Button();
+            this.lblPhien = new System.Windows.Forms.Label();
             this.grpThongTin = new System.Windows.Forms.GroupBox();
             this.lblLopHocPhan = new System.Windows.Forms.Label();
             this.cboLopHocPhan = new System.Windows.Forms.ComboBox();
@@ -228,9 +234,9 @@ namespace HeThongDiemDanh
             this.btnBatDauDiemDanh.BackColor = System.Drawing.SystemColors.Control;
             this.btnBatDauDiemDanh.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnBatDauDiemDanh.ForeColor = System.Drawing.Color.Black;
-            this.btnBatDauDiemDanh.Location = new System.Drawing.Point(210, 375);
+            this.btnBatDauDiemDanh.Location = new System.Drawing.Point(30, 375);
             this.btnBatDauDiemDanh.Name = "btnBatDauDiemDanh";
-            this.btnBatDauDiemDanh.Size = new System.Drawing.Size(280, 50);
+            this.btnBatDauDiemDanh.Size = new System.Drawing.Size(240, 50);
             this.btnBatDauDiemDanh.TabIndex = 2;
             this.btnBatDauDiemDanh.Text = "BẮT ĐẦU ĐIỂM DANH";
             this.btnBatDauDiemDanh.UseVisualStyleBackColor = false;
@@ -238,12 +244,12 @@ namespace HeThongDiemDanh
             // 
             // lblTrangThai
             // 
-            this.lblTrangThai.AutoSize = true;
+            this.lblTrangThai.AutoSize = false;
             this.lblTrangThai.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point);
             this.lblTrangThai.ForeColor = System.Drawing.Color.DarkRed;
-            this.lblTrangThai.Location = new System.Drawing.Point(30, 440);
+            this.lblTrangThai.Location = new System.Drawing.Point(30, 500);
             this.lblTrangThai.Name = "lblTrangThai";
-            this.lblTrangThai.Size = new System.Drawing.Size(0, 17);
+            this.lblTrangThai.Size = new System.Drawing.Size(650, 52);
             this.lblTrangThai.TabIndex = 3;
             // 
             // UcMoPhien
@@ -251,6 +257,29 @@ namespace HeThongDiemDanh
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.lblTrangThai);
+            this.Controls.Add(this.btnTrinhChieu);
+            this.Controls.Add(this.btnKetThucPhien);
+            this.Controls.Add(this.lblPhien);
+            this.btnTrinhChieu.Name = "btnTrinhChieu";
+            this.btnTrinhChieu.Text = "Bật trình chiếu";
+            this.btnTrinhChieu.Location = new System.Drawing.Point(285, 375);
+            this.btnTrinhChieu.Size = new System.Drawing.Size(190, 50);
+            this.btnTrinhChieu.Enabled = false;
+            this.btnTrinhChieu.Click += this.btnTrinhChieu_Click;
+            this.btnKetThucPhien.Name = "btnKetThucPhien";
+            this.btnKetThucPhien.Text = "Kết thúc phiên";
+            this.btnKetThucPhien.Location = new System.Drawing.Point(490, 375);
+            this.btnKetThucPhien.Size = new System.Drawing.Size(190, 50);
+            this.btnKetThucPhien.Enabled = false;
+            this.btnKetThucPhien.Click += this.btnKetThucPhien_Click;
+            this.lblPhien.Name = "lblPhien";
+            this.lblPhien.Text = "Phiên tự kết thúc sau số phút đã chọn. Tắt trình chiếu vẫn tiếp tục tính giờ.";
+            this.lblPhien.Location = new System.Drawing.Point(30, 440);
+            this.lblPhien.Size = new System.Drawing.Size(650, 52);
+            this.timerPhien.Interval = 1000;
+            this.timerPhien.Tick += this.timerPhien_Tick;
+            this.AutoScroll = true;
+            this.AutoScrollMinSize = new System.Drawing.Size(710, 560);
             this.Controls.Add(this.btnBatDauDiemDanh);
             this.Controls.Add(this.grpMang);
             this.Controls.Add(this.grpThongTin);
@@ -285,5 +314,9 @@ namespace HeThongDiemDanh
         private System.Windows.Forms.Button btnLamMoiMang;
         private System.Windows.Forms.Button btnBatDauDiemDanh;
         private System.Windows.Forms.Label lblTrangThai;
+        private System.Windows.Forms.Label lblPhien;
+        private System.Windows.Forms.Button btnTrinhChieu;
+        private System.Windows.Forms.Button btnKetThucPhien;
+        private System.Windows.Forms.Timer timerPhien;
     }
 }

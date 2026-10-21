@@ -1,4 +1,4 @@
-namespace HeThongDiemDanh;
+﻿namespace HeThongDiemDanh;
 
 partial class FrmStudentMain
 {
@@ -34,9 +34,15 @@ partial class FrmStudentMain
         lblSection = new Label();
         btnRefresh = new Button();
         btnDiemDanh = new Button();
-        chkXemThu = new CheckBox();
         tabLichSu = new TabPage();
         lblHistory = new Label();
+        pnlLocLichSu = new Panel();
+        lblLopLichSu = new Label();
+        lblTrangThaiLichSu = new Label();
+        cboLopLichSu = new ComboBox();
+        cboTrangThaiLichSu = new ComboBox();
+        btnLamMoiLichSu = new Button();
+        dgvLichSu = new DataGridView();
         clockTimer = new System.Windows.Forms.Timer(components);
         pnlHeader.SuspendLayout();
         pnlProfile.SuspendLayout();
@@ -45,6 +51,8 @@ partial class FrmStudentMain
         ((System.ComponentModel.ISupportInitialize)dgvBuoiHoc).BeginInit();
         pnlActions.SuspendLayout();
         tabLichSu.SuspendLayout();
+        pnlLocLichSu.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)dgvLichSu).BeginInit();
         SuspendLayout();
         // 
         // pnlHeader
@@ -139,6 +147,7 @@ partial class FrmStudentMain
         tabs.Location = new Point(0, 232);
         tabs.Name = "tabs";
         tabs.SelectedIndex = 0;
+        tabs.SelectedIndexChanged += tabs_SelectedIndexChanged;
         tabs.Size = new Size(1100, 488);
         tabs.TabIndex = 0;
         // 
@@ -203,11 +212,10 @@ partial class FrmStudentMain
         pnlActions.Controls.Add(lblSection);
         pnlActions.Controls.Add(btnRefresh);
         pnlActions.Controls.Add(btnDiemDanh);
-        pnlActions.Controls.Add(chkXemThu);
         pnlActions.Dock = DockStyle.Top;
         pnlActions.Location = new Point(18, 18);
         pnlActions.Name = "pnlActions";
-        pnlActions.Size = new Size(1056, 108);
+        pnlActions.Size = new Size(1056, 62);
         pnlActions.TabIndex = 3;
         // 
         // lblSection
@@ -233,7 +241,7 @@ partial class FrmStudentMain
         btnRefresh.Text = "Làm mới";
         btnRefresh.UseVisualStyleBackColor = false;
         btnRefresh.Click += btnRefresh_Click;
-        // Nút chọn buổi và chế độ xem thử không phụ thuộc form giảng viên.
+        // Mở xác thực và nhập OTP cho buổi đang chọn.
         btnDiemDanh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         btnDiemDanh.BackColor = Color.FromArgb(24, 117, 75);
         btnDiemDanh.ForeColor = Color.White;
@@ -245,34 +253,80 @@ partial class FrmStudentMain
         btnDiemDanh.Enabled = false;
         btnDiemDanh.TabIndex = 2;
         btnDiemDanh.Click += btnDiemDanh_Click;
-        chkXemThu.Location = new Point(0, 60);
-        chkXemThu.Size = new Size(710, 32);
-        chkXemThu.Name = "chkXemThu";
-        chkXemThu.Text = "Dùng buổi học mẫu để xem thử (không lưu SQL)";
-        chkXemThu.TabIndex = 3;
-        chkXemThu.CheckedChanged += chkXemThu_CheckedChanged;
         // 
         // tabLichSu
         // 
-        tabLichSu.BackColor = Color.White;
+        tabLichSu.BackColor = Color.FromArgb(243, 246, 250);
+        tabLichSu.Padding = new Padding(18);
+        tabLichSu.Controls.Add(dgvLichSu);
         tabLichSu.Controls.Add(lblHistory);
+        tabLichSu.Controls.Add(pnlLocLichSu);
         tabLichSu.Location = new Point(4, 32);
         tabLichSu.Name = "tabLichSu";
-        tabLichSu.Size = new Size(192, 64);
+        tabLichSu.Size = new Size(1092, 452);
         tabLichSu.TabIndex = 1;
         tabLichSu.Text = "Lịch sử điểm danh";
-        // 
-        // lblHistory
-        // 
-        lblHistory.Dock = DockStyle.Fill;
-        lblHistory.Font = new Font("Segoe UI", 14F);
-        lblHistory.ForeColor = Color.FromArgb(91, 108, 128);
-        lblHistory.Location = new Point(0, 0);
+        // Bộ lọc lịch sử.
+        pnlLocLichSu.Dock = DockStyle.Top;
+        pnlLocLichSu.Size = new Size(1056, 88);
+        pnlLocLichSu.Name = "pnlLocLichSu";
+        pnlLocLichSu.Controls.Add(lblLopLichSu);
+        pnlLocLichSu.Controls.Add(cboLopLichSu);
+        pnlLocLichSu.Controls.Add(lblTrangThaiLichSu);
+        pnlLocLichSu.Controls.Add(cboTrangThaiLichSu);
+        pnlLocLichSu.Controls.Add(btnLamMoiLichSu);
+        lblLopLichSu.Text = "Lớp học phần";
+        lblLopLichSu.Location = new Point(0, 0);
+        lblLopLichSu.Size = new Size(320, 28);
+        lblLopLichSu.Name = "lblLopLichSu";
+        cboLopLichSu.Name = "cboLopLichSu";
+        cboLopLichSu.DropDownStyle = ComboBoxStyle.DropDownList;
+        cboLopLichSu.Location = new Point(0, 32);
+        cboLopLichSu.Size = new Size(390, 32);
+        cboLopLichSu.Enabled = false;
+        cboLopLichSu.SelectedIndexChanged += cboLocLichSu_SelectedIndexChanged;
+        lblTrangThaiLichSu.Text = "Kết quả";
+        lblTrangThaiLichSu.Location = new Point(412, 0);
+        lblTrangThaiLichSu.Size = new Size(210, 28);
+        lblTrangThaiLichSu.Name = "lblTrangThaiLichSu";
+        cboTrangThaiLichSu.Name = "cboTrangThaiLichSu";
+        cboTrangThaiLichSu.DropDownStyle = ComboBoxStyle.DropDownList;
+        cboTrangThaiLichSu.Location = new Point(412, 32);
+        cboTrangThaiLichSu.Size = new Size(220, 32);
+        cboTrangThaiLichSu.Items.AddRange(new object[] { "Tất cả kết quả", "Có mặt", "Đi muộn", "Vắng", "Nghỉ có phép" });
+        cboTrangThaiLichSu.SelectedIndex = 0;
+        cboTrangThaiLichSu.Enabled = false;
+        cboTrangThaiLichSu.SelectedIndexChanged += cboLocLichSu_SelectedIndexChanged;
+        btnLamMoiLichSu.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        btnLamMoiLichSu.Name = "btnLamMoiLichSu";
+        btnLamMoiLichSu.Text = "Làm mới";
+        btnLamMoiLichSu.Location = new Point(926, 24);
+        btnLamMoiLichSu.Size = new Size(130, 44);
+        btnLamMoiLichSu.BackColor = Color.FromArgb(24, 94, 177);
+        btnLamMoiLichSu.ForeColor = Color.White;
+        btnLamMoiLichSu.FlatStyle = FlatStyle.Flat;
+        btnLamMoiLichSu.Click += btnLamMoiLichSu_Click;
+        // Danh sách kết quả đã được ghi nhận.
+        dgvLichSu.Name = "dgvLichSu";
+        dgvLichSu.Dock = DockStyle.Fill;
+        dgvLichSu.ReadOnly = true;
+        dgvLichSu.AllowUserToAddRows = false;
+        dgvLichSu.AllowUserToDeleteRows = false;
+        dgvLichSu.AutoGenerateColumns = true;
+        dgvLichSu.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        dgvLichSu.BackgroundColor = Color.White;
+        dgvLichSu.BorderStyle = BorderStyle.None;
+        dgvLichSu.RowHeadersVisible = false;
+        dgvLichSu.ColumnHeadersHeight = 42;
+        dgvLichSu.RowTemplate.Height = 38;
+        dgvLichSu.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvLichSu.MultiSelect = false;
         lblHistory.Name = "lblHistory";
-        lblHistory.Size = new Size(192, 64);
-        lblHistory.TabIndex = 0;
-        lblHistory.Text = "Lịch sử điểm danh và thống kê cá nhân\r\nChức năng đang được phát triển.";
-        lblHistory.TextAlign = ContentAlignment.MiddleCenter;
+        lblHistory.Dock = DockStyle.Bottom;
+        lblHistory.Height = 70;
+        lblHistory.Padding = new Padding(0, 12, 0, 0);
+        lblHistory.ForeColor = Color.FromArgb(91, 108, 128);
+        lblHistory.Text = "Chọn tab Lịch sử điểm danh để tải kết quả.";
         // 
         // clockTimer
         // 
@@ -301,16 +355,21 @@ partial class FrmStudentMain
         ((System.ComponentModel.ISupportInitialize)dgvBuoiHoc).EndInit();
         pnlActions.ResumeLayout(false);
         tabLichSu.ResumeLayout(false);
+        pnlLocLichSu.ResumeLayout(false);
+        ((System.ComponentModel.ISupportInitialize)dgvLichSu).EndInit();
         ResumeLayout(false);
     }
 
     private Panel pnlHeader, pnlProfile, pnlActions;
     private Label lblTitle, lblClock, lblHoTen, lblThongTin, lblEmail, lblSection, lblStatus, lblNextStep, lblHistory;
     private Button btnLogout, btnRefresh, btnDiemDanh;
-    private CheckBox chkXemThu;
     private TabControl tabs;
     private TabPage tabDiemDanh, tabLichSu;
-    private DataGridView dgvBuoiHoc;
+    private DataGridView dgvBuoiHoc, dgvLichSu;
+    private Panel pnlLocLichSu;
+    private Label lblLopLichSu, lblTrangThaiLichSu;
+    private ComboBox cboLopLichSu, cboTrangThaiLichSu;
+    private Button btnLamMoiLichSu;
     private System.Windows.Forms.Timer clockTimer;
 }
 

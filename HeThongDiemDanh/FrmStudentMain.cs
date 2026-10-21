@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Data;
@@ -17,7 +17,8 @@ namespace HeThongDiemDanh
         private bool dangTaiDuLieu = false;
         private string maSV = "";
         private Dictionary<int, TrangThaiXacThuc> cacLanXacThuc = new Dictionary<int, TrangThaiXacThuc>();
-        private Dictionary<int, string> ketQuaXemThu = new Dictionary<int, string>();
+        private bool dangTaiLichSu = false;
+        private DataTable? bangLichSu;
 
         public FrmStudentMain()
         {
@@ -90,7 +91,6 @@ namespace HeThongDiemDanh
 
             dangTaiDuLieu = true;
             btnRefresh.Enabled = false;
-            chkXemThu.Enabled = false;
             btnDiemDanh.Enabled = false;
             lblStatus.ForeColor = Color.FromArgb(91, 108, 128);
             lblStatus.Text = "Đang tải danh sách buổi học…";
@@ -98,15 +98,7 @@ namespace HeThongDiemDanh
             try
             {
                 // await chờ SQL trả dữ liệu nhưng vẫn cho phép thao tác trên form.
-                DataTable dt;
-                if (chkXemThu.Checked)
-                {
-                    dt = TaoBuoiHocMau();
-                }
-                else
-                {
-                    dt = await SinhVienDAL.LayBuoiHocDangMoAsync(maSV, lifetime.Token);
-                }
+                DataTable dt = await SinhVienDAL.LayBuoiHocDangMoAsync(maSV, lifetime.Token);
 
                 if (this.IsDisposed || lifetime.IsCancellationRequested)
                 {
@@ -119,11 +111,7 @@ namespace HeThongDiemDanh
                 dgvBuoiHoc.DataSource = dt;
                 DinhDangBangBuoiHoc();
 
-                if (chkXemThu.Checked)
-                {
-                    lblStatus.Text = "Có 2 buổi học mẫu để thử điểm danh đúng giờ và đi muộn.";
-                }
-                else if (dt.Rows.Count == 0)
+                if (dt.Rows.Count == 0)
                 {
                     lblStatus.Text = "Hiện tại không có môn học nào đang mở điểm danh. Bấm Làm mới để kiểm tra lại.";
                 }
@@ -152,7 +140,6 @@ namespace HeThongDiemDanh
                 if (!this.IsDisposed && !lifetime.IsCancellationRequested)
                 {
                     btnRefresh.Enabled = true;
-                    chkXemThu.Enabled = true;
                     CapNhatNutDiemDanh();
                 }
             }
@@ -195,63 +182,9 @@ namespace HeThongDiemDanh
             }
         }
 
-        private DataTable TaoBuoiHocMau()
-        {
-            // Dữ liệu chỉ nằm trong bộ nhớ. Hàm này không gọi SQL.
-            DataTable dt = new DataTable();
-            dt.Columns.Add("MaBuoiHoc", typeof(int));
-            dt.Columns.Add("TenMon", typeof(string));
-            dt.Columns.Add("TenLopHP", typeof(string));
-            dt.Columns.Add("GiangVien", typeof(string));
-            dt.Columns.Add("PhongHoc", typeof(string));
-            dt.Columns.Add("NgayHoc", typeof(DateTime));
-            dt.Columns.Add("ThoiGianBatDau", typeof(DateTime));
-            dt.Columns.Add("ThoiGianDemNguoc", typeof(int));
-            dt.Columns.Add("KetQua", typeof(string));
-            string ketQuaDungGio = "Chưa điểm danh";
-            string ketQuaDiMuon = "Chưa điểm danh";
-            if (ketQuaXemThu.ContainsKey(-1))
-            {
-                ketQuaDungGio = ketQuaXemThu[-1];
-            }
-            if (ketQuaXemThu.ContainsKey(-2))
-            {
-                ketQuaDiMuon = ketQuaXemThu[-2];
-            }
-            dt.Rows.Add(-1, "Lập trình trực quan", "Mẫu • Đúng giờ", "Giảng viên mẫu", "P502",
-                DateTime.Today, DateTime.Now.AddMinutes(-2), 10, ketQuaDungGio);
-            dt.Rows.Add(-2, "Cơ sở dữ liệu", "Mẫu • Đi muộn", "Giảng viên mẫu", "P401",
-                DateTime.Today, DateTime.Now.AddMinutes(-16), 10, ketQuaDiMuon);
-            return dt;
-        }
-
-        private async void chkXemThu_CheckedChanged(object? sender, EventArgs e)
-        {
-            CapNhatHuongDan();
-            await LoadBuoiHoc();
-        }
-
         private void CapNhatHuongDan()
         {
-            if (chkXemThu.Checked)
-            {
-                lblSection.Text = "Buổi học mẫu • Không lưu SQL";
-                lblNextStep.ForeColor = Color.FromArgb(155, 98, 0);
-                lblNextStep.Text = "XEM THỬ: ngày sinh 15/05/2005 hoặc CCCD 1234; OTP UTT234. Kết quả không được tính chuyên cần.";
-            }
-            else
-            {
-                lblSection.Text = "Buổi học đang mở";
-                lblNextStep.ForeColor = Color.FromArgb(91, 108, 128);
-                if (AppConfig.TestMode)
-                {
-                    lblNextStep.Text = "TEST MẠNG đang bật: bỏ qua kiểm tra cùng mạng; kết quả điểm danh vẫn lưu thật vào SQL.";
-                }
-                else
-                {
-                    lblNextStep.Text = "Chọn buổi học, bấm Vào điểm danh để xác thực thông tin và nhập OTP.";
-                }
-            }
+            lblNextStep.Text = "Chọn buổi học để xác thực và nhập OTP. Máy sinh viên phải cùng mạng Wi-Fi/LAN với giảng viên.";
         }
 
         private void dgvBuoiHoc_CurrentCellChanged(object? sender, EventArgs e)
@@ -300,7 +233,6 @@ namespace HeThongDiemDanh
             }
             int maBuoi = Convert.ToInt32(dong["MaBuoiHoc"]);
             string tenMon = Convert.ToString(dong["TenMon"]) ?? "Buổi học";
-            bool xemThu = chkXemThu.Checked;
             if (!cacLanXacThuc.ContainsKey(maBuoi))
             {
                 cacLanXacThuc.Add(maBuoi, new TrangThaiXacThuc());
@@ -312,7 +244,7 @@ namespace HeThongDiemDanh
                 return;
             }
 
-            using (FrmXacThuc frmXacThuc = new FrmXacThuc(maBuoi, thongTin, xemThu))
+            using (FrmXacThuc frmXacThuc = new FrmXacThuc(maBuoi, thongTin))
             {
                 if (frmXacThuc.ShowDialog(this) != DialogResult.OK)
                 {
@@ -320,13 +252,9 @@ namespace HeThongDiemDanh
                     return;
                 }
                 using (FrmNhapOTP frmOTP = new FrmNhapOTP(maBuoi, tenMon, thongTin.LoaiCauHoi,
-                    frmXacThuc.TraLoi, xemThu, maBuoi == -2))
+                    frmXacThuc.TraLoi))
                 {
                     frmOTP.ShowDialog(this);
-                    if (xemThu && frmOTP.KetQua != "")
-                    {
-                        ketQuaXemThu[maBuoi] = frmOTP.KetQua;
-                    }
                 }
             }
             // Kể cả khi gặp lỗi mạng, tải lại để biết SQL đã ghi nhận hay chưa.
@@ -350,12 +278,201 @@ namespace HeThongDiemDanh
             this.Close();
         }
 
+        private async void tabs_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (tabs.SelectedTab == tabLichSu)
+            {
+                await LoadLichSu();
+            }
+        }
+
+        private async void btnLamMoiLichSu_Click(object? sender, EventArgs e)
+        {
+            await LoadLichSu();
+        }
+
+        private async Task LoadLichSu()
+        {
+            if (dangTaiLichSu || lifetime.IsCancellationRequested || string.IsNullOrEmpty(maSV))
+            {
+                return;
+            }
+            dangTaiLichSu = true;
+            btnLamMoiLichSu.Enabled = false;
+            cboLopLichSu.Enabled = false;
+            cboTrangThaiLichSu.Enabled = false;
+            lblHistory.ForeColor = Color.FromArgb(91, 108, 128);
+            lblHistory.Text = "Đang tải lịch sử điểm danh…";
+            string lopDaChon = Convert.ToString(cboLopLichSu.SelectedValue) ?? "";
+            try
+            {
+                DataTable dt = await SinhVienDAL.LayLichSuDiemDanhAsync(maSV, lifetime.Token);
+                if (this.IsDisposed || lifetime.IsCancellationRequested)
+                {
+                    dt.Dispose();
+                    return;
+                }
+                XoaBangLichSu();
+                bangLichSu = dt;
+                dgvLichSu.DataSource = bangLichSu.DefaultView;
+                LoadBoLocLop(lopDaChon);
+                DinhDangBangLichSu();
+                LocLichSu();
+            }
+            catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+            {
+                // Đóng form thì dừng truy vấn, không hiện thông báo lỗi.
+            }
+            catch (Exception)
+            {
+                if (!this.IsDisposed && !lifetime.IsCancellationRequested)
+                {
+                    XoaBangLichSu();
+                    lblHistory.ForeColor = Color.Firebrick;
+                    lblHistory.Text = "Không tải được lịch sử. Kiểm tra kết nối máy chủ và bấm Làm mới.";
+                }
+            }
+            finally
+            {
+                dangTaiLichSu = false;
+                if (!this.IsDisposed && !lifetime.IsCancellationRequested)
+                {
+                    btnLamMoiLichSu.Enabled = true;
+                    cboLopLichSu.Enabled = bangLichSu != null;
+                    cboTrangThaiLichSu.Enabled = bangLichSu != null;
+                }
+            }
+        }
+
+        private void LoadBoLocLop(string lopDaChon)
+        {
+            DataTable danhSach = new DataTable();
+            danhSach.Columns.Add("MaLopHP");
+            danhSach.Columns.Add("TenHienThi");
+            danhSach.Rows.Add("", "Tất cả lớp học phần");
+            HashSet<string> cacMaLop = new HashSet<string>();
+            if (bangLichSu != null)
+            {
+                foreach (DataRow dong in bangLichSu.Rows)
+                {
+                    string maLop = Convert.ToString(dong["MaLopHP"]) ?? "";
+                    if (cacMaLop.Add(maLop))
+                    {
+                        danhSach.Rows.Add(maLop, dong["TenLopHP"] + " (" + maLop + ")");
+                    }
+                }
+            }
+            DataTable? bangCu = cboLopLichSu.DataSource as DataTable;
+            cboLopLichSu.DisplayMember = "TenHienThi";
+            cboLopLichSu.ValueMember = "MaLopHP";
+            cboLopLichSu.DataSource = danhSach;
+            if (bangCu != null) bangCu.Dispose();
+            if (cacMaLop.Contains(lopDaChon))
+            {
+                cboLopLichSu.SelectedValue = lopDaChon;
+            }
+            else
+            {
+                cboLopLichSu.SelectedIndex = 0;
+            }
+        }
+
+        private void cboLocLichSu_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (!dangTaiLichSu)
+            {
+                LocLichSu();
+            }
+        }
+
+        private void LocLichSu()
+        {
+            if (bangLichSu == null) return;
+            lblHistory.ForeColor = Color.FromArgb(91, 108, 128);
+            string maLop = Convert.ToString(cboLopLichSu.SelectedValue) ?? "";
+            string dieuKien = "";
+            if (maLop != "")
+            {
+                dieuKien = "MaLopHP = '" + maLop.Replace("'", "''") + "'";
+            }
+            if (cboTrangThaiLichSu.SelectedIndex > 0)
+            {
+                if (dieuKien != "") dieuKien += " AND ";
+                dieuKien += "TrangThai = '" + cboTrangThaiLichSu.Text.Replace("'", "''") + "'";
+            }
+            bangLichSu.DefaultView.RowFilter = dieuKien;
+
+            int coMat = 0, diMuon = 0, vang = 0, nghiPhep = 0;
+            foreach (DataRowView dong in bangLichSu.DefaultView)
+            {
+                string trangThai = Convert.ToString(dong["TrangThai"]) ?? "";
+                if (trangThai == "Có mặt") coMat++;
+                else if (trangThai == "Đi muộn") diMuon++;
+                else if (trangThai == "Vắng") vang++;
+                else if (trangThai == "Nghỉ có phép") nghiPhep++;
+            }
+            if (bangLichSu.Rows.Count == 0)
+            {
+                lblHistory.Text = "Bạn chưa có kết quả điểm danh được ghi nhận.";
+            }
+            else if (bangLichSu.DefaultView.Count == 0)
+            {
+                lblHistory.Text = "Không có kết quả phù hợp với bộ lọc đang chọn.";
+            }
+            else
+            {
+                lblHistory.Text = "Đang xem " + bangLichSu.DefaultView.Count + " kết quả • Có mặt: " + coMat
+                    + " • Đi muộn: " + diMuon + " • Vắng: " + vang + " • Nghỉ có phép: " + nghiPhep;
+            }
+        }
+
+        private void DinhDangBangLichSu()
+        {
+            foreach (DataGridViewColumn cot in dgvLichSu.Columns)
+            {
+                cot.MinimumWidth = 110;
+                if (cot.Name == "MaLopHP") cot.Visible = false;
+                else if (cot.Name == "TenLopHP") cot.HeaderText = "Lớp học phần";
+                else if (cot.Name == "TenMon") cot.HeaderText = "Môn học";
+                else if (cot.Name == "TenBuoiHoc") cot.HeaderText = "Buổi học";
+                else if (cot.Name == "TrangThai") cot.HeaderText = "Kết quả";
+                else if (cot.Name == "GhiChu") cot.HeaderText = "Ghi chú";
+                else if (cot.Name == "NgayHoc")
+                {
+                    cot.HeaderText = "Ngày học";
+                    cot.DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+                else if (cot.Name == "ThoiGianQuet")
+                {
+                    cot.HeaderText = "Lúc điểm danh";
+                    cot.MinimumWidth = 160;
+                    cot.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
+                    cot.DefaultCellStyle.NullValue = "—";
+                }
+            }
+        }
+
+        private void XoaBangLichSu()
+        {
+            dgvLichSu.DataSource = null;
+            if (bangLichSu != null)
+            {
+                bangLichSu.Dispose();
+                bangLichSu = null;
+            }
+        }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             // Chạy khi bấm Đăng xuất hoặc dấu X của form.
             lifetime.Cancel();
             clockTimer.Stop();
             ClearData();
+            XoaBangLichSu();
+
+            DataTable? cacLop = cboLopLichSu.DataSource as DataTable;
+            cboLopLichSu.DataSource = null;
+            if (cacLop != null) cacLop.Dispose();
 
             // Form đăng nhập sẽ xóa phiên và hiện lại sau khi form này đóng.
             base.OnFormClosed(e);

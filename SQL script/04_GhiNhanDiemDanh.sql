@@ -1,4 +1,4 @@
--- Chạy sau khi đã có các bảng trong QlyDiemDanh.
+﻿-- Chạy sau khi đã có các bảng trong QlyDiemDanh.
 -- Có thể chạy lại: chỉ tạo/cập nhật hàm và thủ tục, không xóa bảng hay dữ liệu.
 USE QlyDiemDanh;
 GO
@@ -57,8 +57,8 @@ BEGIN
 
     IF @GioiHanPhut IS NULL OR @GioiHanPhut < 1 OR @GioiHanPhut > 1440
         THROW 50001, N'Cấu hình thời hạn buổi điểm danh phải từ 1 đến 1440 phút.', 1;
-    IF @BoQuaKiemTraIP IS NULL
-        THROW 50002, N'Cấu hình kiểm tra mạng không hợp lệ.', 1;
+    IF @BoQuaKiemTraIP IS NULL OR @BoQuaKiemTraIP <> 0
+        THROW 50002, N'Không còn hỗ trợ bỏ qua kiểm tra mạng. Hãy cập nhật ứng dụng.', 1;
 
     DECLARE @TuMoGiaoDich bit = 0;
     BEGIN TRY
@@ -110,6 +110,7 @@ BEGIN
         -- Lấy giờ SAU khi nhận đủ khóa, không dùng giờ trên máy sinh viên.
         DECLARE @HienTai datetime = GETDATE();
         IF @TrangThaiBuoi <> N'Mo' OR @BatDau > @HienTai
+           OR DATEADD(MINUTE, @DemNguoc, @BatDau) <= @HienTai
            OR DATEADD(MINUTE, @GioiHanPhut, @BatDau) <= @HienTai
             THROW 50004, N'Buổi điểm danh đã đóng, chưa bắt đầu hoặc đã hết hạn.', 1;
 
@@ -139,8 +140,7 @@ BEGIN
            OR @MaOTP COLLATE Latin1_General_100_BIN2 <> @OTPDung COLLATE Latin1_General_100_BIN2
             THROW 50009, N'Mã OTP không đúng hoặc đã được thay đổi. Hãy nhập mã hiện tại của giảng viên.', 1;
 
-        -- Chế độ test chỉ bỏ qua bước mạng này, không bỏ bất kỳ kiểm tra nào phía trên.
-        IF @BoQuaKiemTraIP = 0
+        -- Luôn kiểm tra mạng tại SQL ngay trước khi ghi nhận.
         BEGIN
             DECLARE @SoIPSV bigint = dbo.fn_IPv4ThanhSo(@IP_SV);
             DECLARE @SoIPGV bigint = dbo.fn_IPv4ThanhSo(@IP_GV);
@@ -170,12 +170,8 @@ BEGIN
         ELSE
             SET @KetQua = N'Đi muộn';
 
-        DECLARE @GhiChu nvarchar(255) = NULL;
-        IF @BoQuaKiemTraIP = 1
-            SET @GhiChu = N'Chế độ test: bỏ qua kiểm tra cùng mạng.';
-
         INSERT INTO dbo.DiemDanh (MaBuoiHoc, MaSV, ThoiGianQuet, IP_SV, TrangThai, GhiChu)
-        VALUES (@MaBuoiHoc, @MaSV, @HienTai, @IP_SV, @KetQua, @GhiChu);
+        VALUES (@MaBuoiHoc, @MaSV, @HienTai, @IP_SV, @KetQua, NULL);
 
         IF @TuMoGiaoDich = 1
             COMMIT TRANSACTION;

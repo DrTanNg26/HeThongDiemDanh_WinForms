@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
@@ -98,6 +98,12 @@ namespace HeThongDiemDanh
                 return false;
             }
 
+            // Không dùng loopback, link-local, multicast hoặc địa chỉ chưa được cấp.
+            if (!LaIPv4MangNoiBo(soIP1) || !LaIPv4MangNoiBo(soIP2))
+            {
+                return false;
+            }
+
             // Mask hợp lệ có các bit 1 liền nhau rồi tới các bit 0 (ví dụ /24).
             // Không chấp nhận 0.0.0.0 vì mask này không giới hạn mạng điểm danh.
             ulong phanDao = uint.MaxValue - (ulong)soMask;
@@ -107,6 +113,14 @@ namespace HeThongDiemDanh
             }
 
             return (soIP1 & soMask) == (soIP2 & soMask);
+        }
+
+        private static bool LaIPv4MangNoiBo(uint ip)
+        {
+            uint phanDau = ip >> 24;
+            uint haiPhanDau = ip >> 16;
+            return phanDau >= 1 && phanDau <= 223 && phanDau != 127
+                && haiPhanDau != (169 * 256 + 254);
         }
 
         private static bool ChuyenIPv4ThanhSo(string diaChi, out uint ketQua)

@@ -1,4 +1,4 @@
-namespace HeThongDiemDanh
+﻿namespace HeThongDiemDanh
 {
     partial class FrmGiangVienMain
     {
@@ -15,6 +15,7 @@ namespace HeThongDiemDanh
 
         private void InitializeComponent()
         {
+            this._ucMoPhien = new UcMoPhien();
             this.pnlTop = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblGiangVien = new System.Windows.Forms.Label();
@@ -84,6 +85,10 @@ namespace HeThongDiemDanh
             // 
             // tabMoPhien
             // 
+            this._ucMoPhien.Name = "_ucMoPhien";
+            this._ucMoPhien.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._ucMoPhien.AutoScroll = true;
+            this.tabMoPhien.Controls.Add(this._ucMoPhien);
             this.tabMoPhien.Location = new System.Drawing.Point(4, 26);
             this.tabMoPhien.Name = "tabMoPhien";
             this.tabMoPhien.Padding = new System.Windows.Forms.Padding(3);
@@ -109,6 +114,7 @@ namespace HeThongDiemDanh
             this.ResumeLayout(false);
         }
 
+        private UcMoPhien _ucMoPhien;
         private System.Windows.Forms.Panel pnlTop;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblGiangVien;

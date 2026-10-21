@@ -8,6 +8,38 @@ namespace HeThongDiemDanh
 {
     public static class SinhVienDAL
     {
+        public static async Task<DataTable> LayLichSuDiemDanhAsync(string maSV, CancellationToken token)
+        {
+            string sql = "SELECT lhp.MaLopHP, lhp.TenLopHP, mh.TenMon, bh.TenBuoiHoc, ";
+            sql += "bh.NgayHoc, dd.ThoiGianQuet, dd.TrangThai, dd.GhiChu ";
+            sql += "FROM DiemDanh dd JOIN BuoiHoc bh ON bh.MaBuoiHoc=dd.MaBuoiHoc ";
+            sql += "JOIN LopHocPhan lhp ON lhp.MaLopHP=bh.MaLopHP ";
+            sql += "JOIN MonHoc mh ON mh.MaMon=lhp.MaMon WHERE dd.MaSV=@MaSV ";
+            sql += "ORDER BY bh.NgayHoc DESC,bh.ThoiGianBatDau DESC,dd.MaDiemDanh DESC";
+            using (SqlConnection con = DatabaseConnection.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, con))
+            {
+                cmd.Parameters.Add("@MaSV", SqlDbType.VarChar, 10).Value = maSV;
+                await con.OpenAsync(token);
+                using (SqlDataReader dr = await cmd.ExecuteReaderAsync(token))
+                {
+                    DataTable dt = new DataTable();
+                    try
+                    {
+                        for (int i = 0; i < dr.FieldCount; i++) dt.Columns.Add(dr.GetName(i), dr.GetFieldType(i));
+                        while (await dr.ReadAsync(token))
+                        {
+                            object[] giaTri = new object[dr.FieldCount];
+                            dr.GetValues(giaTri);
+                            dt.Rows.Add(giaTri);
+                        }
+                        return dt;
+                    }
+                    catch { dt.Dispose(); throw; }
+                }
+            }
+        }
+
         public static async Task<DataTable> LayBuoiHocDangMoAsync(string maSV, CancellationToken cancellationToken)
         {
             // 1. Lấy các buổi học đang mở của lớp mà sinh viên đã được phân vào.

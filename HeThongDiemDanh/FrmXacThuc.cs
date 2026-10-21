@@ -1,5 +1,4 @@
-using System;
-using System.Globalization;
+﻿using System;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -8,7 +7,6 @@ namespace HeThongDiemDanh
     public partial class FrmXacThuc : Form
     {
         private int maBuoiHoc;
-        private bool xemThu;
         private bool dangKiemTra;
         private TrangThaiXacThuc trangThai = new TrangThaiXacThuc();
         public string TraLoi { get; private set; } = "";
@@ -18,11 +16,10 @@ namespace HeThongDiemDanh
             InitializeComponent();
         }
 
-        public FrmXacThuc(int maBuoi, TrangThaiXacThuc thongTin, bool cheDoXemThu) : this()
+        public FrmXacThuc(int maBuoi, TrangThaiXacThuc thongTin) : this()
         {
             maBuoiHoc = maBuoi;
             trangThai = thongTin;
-            xemThu = cheDoXemThu;
             LoadCauHoi();
         }
 
@@ -41,14 +38,7 @@ namespace HeThongDiemDanh
                 txtTraLoi.PlaceholderText = "4 chữ số";
             }
 
-            if (xemThu)
-            {
-                lblHuongDan.Text = "XEM THỬ • Ngày sinh mẫu: 15/05/2005; CCCD mẫu: 1234.\r\nKhông sử dụng thông tin cá nhân thật.";
-            }
-            else
-            {
-                lblHuongDan.Text = "Trả lời bằng thông tin đã đăng ký trong hồ sơ sinh viên.\r\nSai 3 lần sẽ khóa điểm danh buổi này trong phiên đăng nhập.";
-            }
+            lblHuongDan.Text = "Trả lời bằng thông tin đã đăng ký trong hồ sơ sinh viên.\r\nSai 3 lần sẽ khóa điểm danh buổi này trong phiên đăng nhập.";
             HienThiSoLanThu();
         }
 
@@ -86,16 +76,8 @@ namespace HeThongDiemDanh
             this.UseWaitCursor = true;
             try
             {
-                bool hopLe;
-                if (xemThu)
-                {
-                    hopLe = KiemTraDuLieuMau(traLoi);
-                }
-                else
-                {
-                    hopLe = await DiemDanhDAL.KiemTraXacThucAsync(UserSession.TenDangNhap,
-                        maBuoiHoc, trangThai.LoaiCauHoi, traLoi, CancellationToken.None);
-                }
+                bool hopLe = await DiemDanhDAL.KiemTraXacThucAsync(UserSession.TenDangNhap,
+                    maBuoiHoc, trangThai.LoaiCauHoi, traLoi, CancellationToken.None);
 
                 if (hopLe)
                 {
@@ -130,18 +112,6 @@ namespace HeThongDiemDanh
                     btnTiepTuc.Enabled = !trangThai.DaBiKhoa();
                 }
             }
-        }
-
-        private bool KiemTraDuLieuMau(string traLoi)
-        {
-            if (trangThai.LoaiCauHoi == "NgaySinh")
-            {
-                DateTime ngaySinh;
-                bool dungDinhDang = DateTime.TryParseExact(traLoi, "dd/MM/yyyy",
-                    CultureInfo.InvariantCulture, DateTimeStyles.None, out ngaySinh);
-                return dungDinhDang && ngaySinh == new DateTime(2005, 5, 15);
-            }
-            return traLoi == "1234";
         }
 
         private void btnHuy_Click(object? sender, EventArgs e)

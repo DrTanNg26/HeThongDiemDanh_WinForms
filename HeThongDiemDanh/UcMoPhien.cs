@@ -1,239 +1,288 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace HeThongDiemDanh
 {
     public partial class UcMoPhien : UserControl
     {
-        // Bộ ký tự sinh mã OTP an toàn: Đã loại trừ ký tự dễ nhầm lẫn (0, O, 1, I, L)
         private const string KiTuOtp = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-
-        private string? _currentIp;
-        private string? _currentSubnet;
-        private DataTable? _dtLop;
+        private string? ipHienTai;
+        private string? maskHienTai;
+        private string maGV = "";
+        private bool dangCapNhat;
+        private bool dangThaoTac;
+        private bool daDung;
+        private DataTable? bangLop;
+        private List<ThongTinBuoiHoc> cacPhien = new List<ThongTinBuoiHoc>();
+        private Dictionary<int, FrmTrinhChieu> cacManHinh = new Dictionary<int, FrmTrinhChieu>();
 
         public UcMoPhien()
         {
             InitializeComponent();
         }
 
-        private void UcMoPhien_Load(object? sender, EventArgs e)
+        private async void UcMoPhien_Load(object? sender, EventArgs e)
         {
-            try { BuoiHocDAL.TuDongDongPhienQuaHan(); } catch { }
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime || DesignMode) return;
+            if (!UserSession.LaGiangVien || !UserSession.DaDangNhap) return;
+            maGV = UserSession.TenDangNhap;
             KiemTraThongTinMang();
             LoadDanhSachLop();
+            timerPhien.Start();
+            await CapNhatPhienAsync();
         }
 
-        // 1. Kiểm tra thông tin Wi-Fi / LAN của máy Giảng viên
         public void KiemTraThongTinMang()
         {
+            ipHienTai = null;
+            maskHienTai = null;
             try
             {
                 List<ThongTinMang> danhSach = NetworkHelper.LayDanhSachMang();
-                if (danhSach != null && danhSach.Count > 0)
+                if (danhSach.Count > 0)
                 {
-                    _currentIp = danhSach[0].DiaChiIP;
-                    _currentSubnet = danhSach[0].SubnetMask;
-
-                    lblIP.Text = _currentIp;
-                    lblSubnet.Text = _currentSubnet;
-                    lblTrangThai.Text = "";
+                    ipHienTai = danhSach[0].DiaChiIP;
+                    maskHienTai = danhSach[0].SubnetMask;
                 }
-                else
-                {
-                    _currentIp = null;
-                    _currentSubnet = null;
-
-                    // Nếu bật AppConfig.TestMode thì cho phép dùng localhost
-                    if (AppConfig.TestMode)
-                    {
-                        _currentIp = "127.0.0.1";
-                        _currentSubnet = "255.255.255.0";
-                        lblIP.Text = "127.0.0.1 (Chế độ Test)";
-                        lblSubnet.Text = "255.255.255.0";
-                        lblTrangThai.Text = "Đang chạy ở chế độ TestMode (chấp nhận test trên 1 máy).";
-                    }
-                    else
-                    {
-                        lblIP.Text = "Chưa kết nối Wi-Fi/LAN";
-                        lblSubnet.Text = "Không xác định";
-                        lblTrangThai.Text = "Cảnh báo: Máy tính chưa kết nối Wi-Fi hoặc mạng LAN!";
-                    }
-                }
+                lblIP.Text = ipHienTai ?? "Chưa kết nối Wi-Fi/LAN";
+                lblSubnet.Text = maskHienTai ?? "Chưa xác định";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                lblTrangThai.Text = "Lỗi kiểm tra mạng: " + ex.Message;
+                lblTrangThai.Text = "Chưa đọc được mạng. Kiểm tra Wi-Fi/LAN và thử lại.";
             }
         }
 
-        // 2. Tải danh sách lớp học phần do Giảng viên phụ trách
         public void LoadDanhSachLop()
         {
+            if (maGV == "" || daDung) return;
             try
             {
-                string maGV = UserSession.TenDangNhap;
-                if (string.IsNullOrEmpty(maGV))
-                {
-                    lblTrangThai.Text = "Không tìm thấy thông tin giảng viên đăng nhập.";
-                    return;
-                }
-
-                _dtLop = BuoiHocDAL.LayDanhSachLopTheoGiangVien(maGV);
-                cboLopHocPhan.DataSource = _dtLop;
+                string lopCu = Convert.ToString(cboLopHocPhan.SelectedValue) ?? "";
+                DataTable dt = BuoiHocDAL.LayDanhSachLopTheoGiangVien(maGV);
+                DataTable? cu = bangLop;
+                bangLop = dt;
                 cboLopHocPhan.DisplayMember = "TenLopHP";
                 cboLopHocPhan.ValueMember = "MaLopHP";
-
-                if (_dtLop.Rows.Count > 0)
+                cboLopHocPhan.DataSource = dt;
+                cu?.Dispose();
+                foreach (DataRow dong in dt.Rows)
                 {
-                    cboLopHocPhan.SelectedIndex = 0;
-                    CapNhatThongTinLopDuocChon();
+                    if (Convert.ToString(dong["MaLopHP"]) == lopCu) cboLopHocPhan.SelectedValue = lopCu;
                 }
-                else
-                {
-                    lblSiSo.Text = "0";
-                    lblTrangThai.Text = "Giảng viên chưa được phân công lớp học phần nào.";
-                }
+                CapNhatThongTinLopDuocChon();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show("Lỗi khi tải danh sách lớp học phần: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblTrangThai.Text = "Chưa tải được lớp học phần. Bấm Làm mới mạng để thử lại.";
             }
         }
 
         private void cboLopHocPhan_SelectedIndexChanged(object? sender, EventArgs e)
         {
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime || DesignMode) return;
             CapNhatThongTinLopDuocChon();
         }
 
         private void CapNhatThongTinLopDuocChon()
         {
-            if (cboLopHocPhan.SelectedValue is string maLopHP && !string.IsNullOrEmpty(maLopHP))
+            DataRowView? lop = cboLopHocPhan.SelectedItem as DataRowView;
+            lblSiSo.Text = lop == null ? "0" : Convert.ToString(lop["SiSo"]);
+            if (lop != null && maGV != "")
             {
-                // Cập nhật sĩ số
-                int siSo = BuoiHocDAL.LaySiSoLop(maLopHP);
-                lblSiSo.Text = siSo.ToString();
-
-                // Tự động sinh buổi học tiếp theo
-                int buoiTiepTheo = BuoiHocDAL.LaySoBuoiTiepTheo(maLopHP);
-                nudBuoiHoc.Value = Math.Max(1, Math.Min(nudBuoiHoc.Maximum, buoiTiepTheo));
+                try
+                {
+                    int buoi = BuoiHocDAL.LaySoBuoiTiepTheo(Convert.ToString(lop["MaLopHP"]) ?? "");
+                    nudBuoiHoc.Value = Math.Max(nudBuoiHoc.Minimum, Math.Min(nudBuoiHoc.Maximum, buoi));
+                }
+                catch (Exception) { lblTrangThai.Text = "Chưa lấy được số buổi. Hãy kiểm tra kết nối."; }
             }
+            CapNhatNut();
         }
 
-        private void btnLamMoiMang_Click(object? sender, EventArgs e)
+        private ThongTinBuoiHoc? PhienDuocChon()
         {
-            KiemTraThongTinMang();
+            string maLop = Convert.ToString(cboLopHocPhan.SelectedValue) ?? "";
+            foreach (ThongTinBuoiHoc phien in cacPhien)
+            {
+                if (phien.MaLopHP == maLop) return phien;
+            }
+            return null;
         }
 
-        // 3. Xử lý nút "Bắt đầu điểm danh"
-        private void btnBatDauDiemDanh_Click(object? sender, EventArgs e)
+        private void CapNhatNut()
         {
-            // Kiểm tra chọn lớp
-            if (cboLopHocPhan.SelectedValue == null)
+            ThongTinBuoiHoc? phien = PhienDuocChon();
+            btnBatDauDiemDanh.Enabled = !dangThaoTac && phien == null && cboLopHocPhan.SelectedItem != null;
+            btnTrinhChieu.Enabled = !dangThaoTac && phien != null;
+            btnKetThucPhien.Enabled = !dangThaoTac && phien != null;
+            btnTrinhChieu.Text = phien != null && cacManHinh.ContainsKey(phien.MaBuoiHoc) ? "Tắt trình chiếu" : "Bật trình chiếu";
+            if (phien != null)
             {
-                MessageBox.Show("Vui lòng chọn lớp học phần cần mở điểm danh.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                lblPhien.Text = phien.TenBuoiHoc + " đang mở • Tự kết thúc sau " + phien.ThoiGianDemNguoc
+                    + " phút, lúc " + phien.ThoiGianBatDau.AddMinutes(phien.ThoiGianDemNguoc).ToString("HH:mm:ss") + " (giờ máy chủ).";
             }
+            else lblPhien.Text = "Lớp đang chọn chưa có phiên mở. Chọn thời gian rồi bấm Bắt đầu điểm danh.";
+        }
 
-            string maLopHP = cboLopHocPhan.SelectedValue.ToString()!;
-            string tenLopHP = cboLopHocPhan.Text;
+        private async void timerPhien_Tick(object? sender, EventArgs e)
+        {
+            await CapNhatPhienAsync();
+        }
 
-            // Kiểm tra kết nối mạng Wi-Fi/LAN
-            KiemTraThongTinMang();
-            if (string.IsNullOrEmpty(_currentIp))
-            {
-                MessageBox.Show("Không tìm thấy kết nối Wi-Fi/LAN. Vui lòng kết nối mạng trước khi mở phiên điểm danh!", 
-                                "Cảnh báo mạng", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Kiểm tra xem lớp học phần đã có phiên nào đang mở không
-            if (BuoiHocDAL.KiemTraLopDangCoPhienMo(maLopHP))
-            {
-                MessageBox.Show($"Lớp học phần '{tenLopHP}' hiện đang có một phiên điểm danh đang mở chưa kết thúc.\n" +
-                                "Vui lòng đóng phiên hiện tại trước khi tạo phiên mới!", 
-                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Xác định thời gian đếm ngược
-            int thoiGianDemNguoc = 10;
-            if (rdo5Phut.Checked) thoiGianDemNguoc = 5;
-            else if (rdo15Phut.Checked) thoiGianDemNguoc = 15;
-
-            int soBuoi = (int)nudBuoiHoc.Value;
-            string tenBuoiHoc = $"Buổi {soBuoi}";
-
-            // Sinh mã OTP an toàn 6 ký tự không trùng
-            string maOTP = SinhMaOtpKhongTrung();
-
+        private async Task CapNhatPhienAsync()
+        {
+            if (dangCapNhat || dangThaoTac || daDung || maGV == "") return;
+            dangCapNhat = true;
             try
             {
-                // Ghi vào CSDL SQL
-                int maBuoiHoc = BuoiHocDAL.TaoPhienDiemDanh(
-                    maLopHP,
-                    tenBuoiHoc,
-                    maOTP,
-                    _currentIp,
-                    _currentSubnet ?? "",
-                    thoiGianDemNguoc
-                );
-
-                if (maBuoiHoc <= 0)
+                List<ThongTinBuoiHoc> danhSach = new List<ThongTinBuoiHoc>();
+                int soDong = 0;
+                await Task.Run(() =>
                 {
-                    MessageBox.Show("Không thể tạo phiên điểm danh. Vui lòng thử lại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    soDong = BuoiHocDAL.TuDongDongPhienQuaHan(maGV);
+                    danhSach = BuoiHocDAL.LayCacPhienDangMo(maGV);
+                });
+                if (IsDisposed || daDung) return;
+                cacPhien = danhSach;
+                List<int> canTat = new List<int>();
+                foreach (int maBuoi in cacManHinh.Keys)
+                {
+                    bool conMo = false;
+                    foreach (ThongTinBuoiHoc phien in danhSach)
+                    {
+                        if (phien.MaBuoiHoc == maBuoi) conMo = true;
+                    }
+                    if (!conMo) canTat.Add(maBuoi);
                 }
+                foreach (int maBuoi in canTat) cacManHinh[maBuoi].Close();
+                lblTrangThai.Text = soDong > 0 ? "Đã tự động kết thúc phiên hết giờ và chốt các kết quả còn lại." : "";
+                CapNhatNut();
+            }
+            catch (Exception)
+            {
+                if (!IsDisposed && !daDung) lblTrangThai.Text = "Chưa đồng bộ được phiên. Hệ thống sẽ tự thử lại khi có kết nối.";
+            }
+            finally { dangCapNhat = false; }
+        }
 
-                MessageBox.Show($"Đã mở phiên điểm danh thành công!\nMã OTP: {maOTP}\nThời gian: {thoiGianDemNguoc} phút.",
-                                "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        private async void btnLamMoiMang_Click(object? sender, EventArgs e)
+        {
+            KiemTraThongTinMang();
+            LoadDanhSachLop();
+            await CapNhatPhienAsync();
+        }
 
-                // Mở màn hình Trình chiếu FrmTrinhChieu
-                FrmTrinhChieu frmTrinhChieu = new FrmTrinhChieu(maBuoiHoc, tenLopHP, tenBuoiHoc, maOTP);
-                frmTrinhChieu.FormClosed += (s, args) =>
+        private async void btnBatDauDiemDanh_Click(object? sender, EventArgs e)
+        {
+            if (dangThaoTac || cboLopHocPhan.SelectedValue is not string maLop) return;
+            KiemTraThongTinMang();
+            if (ipHienTai == null || maskHienTai == null)
+            {
+                lblTrangThai.Text = "Hãy kết nối Wi-Fi/LAN phòng học trước khi mở phiên.";
+                return;
+            }
+            int soPhut = 10;
+            if (rdo5Phut.Checked) soPhut = 5;
+            else if (rdo15Phut.Checked) soPhut = 15;
+            string tenLop = cboLopHocPhan.Text;
+            string tenBuoi = "Buổi " + nudBuoiHoc.Value;
+            string ip = ipHienTai;
+            string mask = maskHienTai;
+            string otp = "";
+            int maBuoi = 0;
+            dangThaoTac = true;
+            cboLopHocPhan.Enabled = false;
+            CapNhatNut();
+            try
+            {
+                await Task.Run(() =>
                 {
-                    // Khi đóng màn hình chiếu, làm mới lại thông tin lớp
-                    CapNhatThongTinLopDuocChon();
-                };
-                frmTrinhChieu.Show();
+                    BuoiHocDAL.TuDongDongPhienQuaHan(maGV);
+                    if (BuoiHocDAL.KiemTraLopDangCoPhienMo(maLop))
+                        throw new InvalidOperationException("Lớp đang có phiên mở. Bạn có thể bật trình chiếu hoặc kết thúc phiên đó.");
+                    otp = SinhMaOtpKhongTrung();
+                    maBuoi = BuoiHocDAL.TaoPhienDiemDanh(maLop, tenBuoi, otp, ip, mask, soPhut);
+                });
+                if (IsDisposed || daDung) return;
+                MoTrinhChieu(maBuoi, tenLop, tenBuoi, otp);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex) { if (!IsDisposed) lblTrangThai.Text = ex.Message; }
+            catch (Exception) { if (!IsDisposed) lblTrangThai.Text = "Chưa mở được phiên. Kiểm tra kết nối máy chủ rồi thử lại."; }
+            finally
             {
-                MessageBox.Show("Lỗi khi mở phiên điểm danh: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dangThaoTac = false;
+                if (!IsDisposed && !daDung) { cboLopHocPhan.Enabled = true; CapNhatNut(); }
             }
+            await CapNhatPhienAsync();
         }
 
-        // 4. Hàm sinh OTP 6 ký tự từ bộ ký tự bỏ 0/O, 1/I và kiểm tra không trùng
-        private string SinhMaOtpKhongTrung()
+        private void MoTrinhChieu(int maBuoi, string tenLop, string tenBuoi, string otp)
         {
-            string otp;
-            int soLanThu = 0;
-            do
+            if (cacManHinh.ContainsKey(maBuoi)) { cacManHinh[maBuoi].Activate(); return; }
+            FrmTrinhChieu frm = new FrmTrinhChieu(maBuoi, tenLop, tenBuoi, otp);
+            cacManHinh.Add(maBuoi, frm);
+            frm.FormClosed += (s, e) =>
             {
-                otp = SinhChuoiNgauNhien(6);
-                soLanThu++;
-                if (soLanThu > 20) break; // Tránh loop vô tận
-            }
-            while (BuoiHocDAL.KiemTraTrungOTP(otp));
-
-            return otp;
+                cacManHinh.Remove(maBuoi);
+                if (!IsDisposed && !daDung) CapNhatNut();
+            };
+            frm.Show(FindForm());
+            CapNhatNut();
         }
 
-        private static string SinhChuoiNgauNhien(int length)
+        private void btnTrinhChieu_Click(object? sender, EventArgs e)
         {
-            char[] chars = new char[length];
-            byte[] randomBytes = new byte[length];
-            RandomNumberGenerator.Fill(randomBytes);
+            ThongTinBuoiHoc? phien = PhienDuocChon();
+            if (phien == null) return;
+            if (cacManHinh.ContainsKey(phien.MaBuoiHoc)) cacManHinh[phien.MaBuoiHoc].Close();
+            else MoTrinhChieu(phien.MaBuoiHoc, phien.TenLopHP, phien.TenBuoiHoc, phien.MaOTP);
+        }
 
-            for (int i = 0; i < length; i++)
+        private async void btnKetThucPhien_Click(object? sender, EventArgs e)
+        {
+            ThongTinBuoiHoc? phien = PhienDuocChon();
+            if (phien == null || dangThaoTac) return;
+            if (MessageBox.Show(this, "Kết thúc " + phien.TenBuoiHoc + " và chốt vắng cho sinh viên chưa điểm danh?",
+                "Kết thúc phiên", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            dangThaoTac = true;
+            CapNhatNut();
+            try
             {
-                chars[i] = KiTuOtp[randomBytes[i] % KiTuOtp.Length];
+                await Task.Run(() => BuoiHocDAL.DongBuoiHoc(phien.MaBuoiHoc));
             }
+            catch (Exception) { if (!IsDisposed) lblTrangThai.Text = "Chưa kết thúc được phiên. Kiểm tra kết nối và thử lại."; }
+            finally { dangThaoTac = false; }
+            await CapNhatPhienAsync();
+        }
 
-            return new string(chars);
+        private static string SinhMaOtpKhongTrung()
+        {
+            for (int lan = 0; lan < 20; lan++)
+            {
+                char[] kyTu = new char[6];
+                for (int i = 0; i < kyTu.Length; i++) kyTu[i] = KiTuOtp[RandomNumberGenerator.GetInt32(KiTuOtp.Length)];
+                string otp = new string(kyTu);
+                if (!BuoiHocDAL.KiemTraTrungOTP(otp)) return otp;
+            }
+            throw new InvalidOperationException("Chưa tạo được mã OTP mới. Vui lòng thử lại.");
+        }
+
+        public void DungTheoDoi()
+        {
+            if (daDung) return;
+            daDung = true;
+            timerPhien.Stop();
+            foreach (FrmTrinhChieu frm in new List<FrmTrinhChieu>(cacManHinh.Values)) frm.Close();
+            cacManHinh.Clear();
+            cboLopHocPhan.DataSource = null;
+            bangLop?.Dispose();
+            bangLop = null;
         }
     }
 }
