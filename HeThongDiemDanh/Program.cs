@@ -1,16 +1,23 @@
+using System.Windows.Forms;
+
 namespace HeThongDiemDanh
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+
+            // Kiểm tra kết nối SQL Server trước khi mở app
+            // Nếu lỗi → mở form cấu hình để người dùng nhập server name đúng
+            if (!DatabaseConnection.KiemTraKetNoi(out string err))
+            {
+                using var frm = new FrmCauHinhKetNoi(err);
+                if (frm.ShowDialog() != DialogResult.OK)
+                    return; // Người dùng hủy → thoát app
+            }
+
             Application.Run(new Form1());
         }
     }

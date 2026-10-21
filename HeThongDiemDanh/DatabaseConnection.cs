@@ -1,114 +1,65 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.Data;
 using Microsoft.Data.SqlClient;
 
 namespace HeThongDiemDanh
 {
+    // Helper kết nối SQL Server — đọc connection string từ App.config
+    // Khi đổi máy: chỉ cần sửa App.config, không rebuild
     public static class DatabaseConnection
     {
-        // Đọc từ App.config — chỉ cần sửa App.config khi đổi máy, không cần build lại
-        private static readonly string _connectionString =
-            ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
-            ?? throw new InvalidOperationException(
-                "Không tìm thấy chuỗi kết nối 'DefaultConnection' trong App.config.");
+        private static string _cs = null;
 
-
-        // Lấy đối tượng kết nối (dùng nội bộ)
-        public static SqlConnection GetConnection()
+        // Lấy connection string (ưu tiên runtime nếu đã được cập nhật qua FrmCauHinhKetNoi)
+        public static string ConnectionString
         {
-            return new SqlConnection(_connectionString);
+            get => _cs ??= ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString
+                           ?? throw new InvalidOperationException("Thiếu DefaultConnection trong App.config");
+            set => _cs = value;   // Cho phép ghi đè lúc runtime (khi người dùng đổi server)
         }
 
-        
-        // Kiểm tra kết nối — gọi khi khởi động app để báo lỗi sớm
-        public static bool KiemTraKetNoi()
+        public static SqlConnection GetConnection() => new SqlConnection(ConnectionString);
+
+        // Kiểm tra kết nối — gọi khi khởi động
+        public static bool KiemTraKetNoi(out string error)
         {
-            try
-            {
-                using (SqlConnection conn = GetConnection())
-                {
-                    conn.Open();
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
+            try { using var c = GetConnection(); c.Open(); error = null; return true; }
+            catch (Exception ex) { error = ex.Message; return false; }
         }
 
-        // SELECT — trả về DataTable
-        public static DataTable ExecuteQuery(string sql, SqlParameter[] parameters = null)
+        // Trả DataTable — dùng cho SELECT
+        public static DataTable ExecuteQuery(string sql, SqlParameter[] p = null)
         {
-            DataTable dt = new DataTable();
-
-            using (SqlConnection conn = GetConnection())
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                ThemThamSo(cmd, parameters);
-                try
-                {
-                    conn.Open();
-                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-                        da.Fill(dt);
-                }
-                catch (SqlException ex)
-                {
-                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
-                }
-            }
-
-            return dt;
+            using var conn = GetConnection();
+            using var cmd  = new SqlCommand(sql, conn);
+            if (p != null) cmd.Parameters.AddRange(p);
+            try { conn.Open(); var dt = new DataTable(); new SqlDataAdapter(cmd).Fill(dt); return dt; }
+            catch (SqlException ex) { throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}"); }
         }
 
-        // INSERT / UPDATE / DELETE — trả về số dòng bị ảnh hưởng
-        public static int ExecuteNonQuery(string sql, SqlParameter[] parameters = null)
+        // Trả số dòng bị ảnh hưởng — dùng cho INSERT/UPDATE/DELETE
+        public static int ExecuteNonQuery(string sql, SqlParameter[] p = null)
         {
-            using (SqlConnection conn = GetConnection())
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            using var conn = GetConnection();
+            using var cmd  = new SqlCommand(sql, conn);
+            if (p != null) cmd.Parameters.AddRange(p);
+            try { conn.Open(); return cmd.ExecuteNonQuery(); }
+            catch (SqlException ex)
             {
-                ThemThamSo(cmd, parameters);
-                try
-                {
-                    conn.Open();
-                    return cmd.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    // Lỗi 2627 / 2601: vi phạm UNIQUE (điểm danh trùng)
-                    if (ex.Number == 2627 || ex.Number == 2601)
-                        throw new Exception("TRUNG_LAP");
-
-                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
-                }
+                if (ex.Number is 2627 or 2601) throw new Exception("TRUNG_LAP");
+                throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
             }
         }
 
-        // Lấy 1 giá trị đơn — dùng cho COUNT, MAX, EXISTS...
-        public static object ExecuteScalar(string sql, SqlParameter[] parameters = null)
+        // Trả 1 giá trị đơn — dùng cho COUNT, MAX, v.v.
+        public static object ExecuteScalar(string sql, SqlParameter[] p = null)
         {
-            using (SqlConnection conn = GetConnection())
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                ThemThamSo(cmd, parameters);
-                try
-                {
-                    conn.Open();
-                    return cmd.ExecuteScalar();
-                }
-                catch (SqlException ex)
-                {
-                    throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}");
-                }
-            }
-        }
-
-        // Hàm nội bộ: gán tham số vào SqlCommand
-        private static void ThemThamSo(SqlCommand cmd, SqlParameter[] parameters)
-        {
-            if (parameters != null && parameters.Length > 0)
-                cmd.Parameters.AddRange(parameters);
+            using var conn = GetConnection();
+            using var cmd  = new SqlCommand(sql, conn);
+            if (p != null) cmd.Parameters.AddRange(p);
+            try { conn.Open(); return cmd.ExecuteScalar(); }
+            catch (SqlException ex) { throw new Exception($"Lỗi SQL ({ex.Number}): {ex.Message}"); }
         }
     }
 }

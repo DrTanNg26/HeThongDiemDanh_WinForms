@@ -46,9 +46,6 @@ CREATE TABLE TaiKhoan (
 );
 GO
 
-DROP TABLE TaiKhoan;
-GO
-
 -- =============================================
 -- TẦNG 3: Admin, GiangVien, SinhVien
 --          (đều FK vào TaiKhoan — phải tạo sau)

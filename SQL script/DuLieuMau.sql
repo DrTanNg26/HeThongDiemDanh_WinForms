@@ -43,7 +43,6 @@ INSERT INTO Admin VALUES ('AD01', N'Nguyễn Quản Trị', 'admin@utt.edu.vn');
 INSERT INTO Admin VALUES ('AD02', N'Nguyễn Duy Tân', 'tanadmin@utt.edu.vn');
 
 GO
-alter table Admin 
 
 -- Giảng viên
 INSERT INTO GiangVien VALUES ('GV01', N'Trần Văn An',   'gv01@utt.edu.vn', N'Thạc sĩ',  'KHCN');

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 
@@ -27,9 +27,16 @@ namespace HeThongDiemDanh
         {
             if (MessageBox.Show(this, "Bạn có chắc chắn muốn đăng xuất không?", "Xác nhận",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
                 Close();
-            }
+        }
+
+        // Làm mới dữ liệu khi chuyển sang tab Điều chỉnh / Tổng kết
+        private void TabMain_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (tabMain.SelectedTab == tabSuaThuCong)
+                _ucSuaThuCong.TaiDanhSachLop();   // Nạp lại lớp HP vào UC Điều chỉnh thủ công
+            else if (tabMain.SelectedTab == tabTongKet)
+                _ucTongKet.TaiDanhSachLop();       // Nạp lại lớp HP vào UC Tổng kết
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
