@@ -1,4 +1,4 @@
-namespace HeThongDiemDanh
+﻿namespace HeThongDiemDanh
 {
     public partial class Form1 : Form
     {
@@ -136,29 +136,11 @@ namespace HeThongDiemDanh
             // Đăng nhập thành công
             MessageBox.Show("Đăng nhập thành công! Vai trò: " + UserSession.VaiTro);
 
+            MatKhau_tb.Clear();
+
             if (UserSession.LaAdmin)
             {
-                // Open admin main form
                 var adminForm = new FrmAdmin();
-                adminForm.FormClosed += (s, args) =>
-                {
-                    if (string.IsNullOrEmpty(UserSession.TenDangNhap))
-                    {
-                        MatKhau_tb.Clear();
-                        if (!this.IsDisposed && !this.Disposing)
-                        {
-                            this.Show();
-                            this.Activate();
-                            CenterLoginPanel();
-                        }
-                    }
-                    else
-                    {
-                        // Người dùng tắt form Admin trực tiếp bằng nút X -> Thoát toàn bộ ứng dụng
-                        Application.Exit();
-                    }
-                };
-                this.Hide();
                 adminForm.Show();
                 return;
             }
@@ -174,60 +156,19 @@ namespace HeThongDiemDanh
                 OpenTeacherMain();
                 return;
             }
-
-            this.Hide();
         }
 
         private void OpenTeacherMain()
         {
-            try
-            {
-                using (FrmGiangVienMain frmGV = new FrmGiangVienMain())
-                {
-                    this.Hide();
-                    frmGV.ShowDialog();
-                }
-            }
-            finally
-            {
-                UserSession.Clear();
-                MatKhau_tb.Clear();
-                if (!this.IsDisposed && !this.Disposing)
-                {
-                    this.Show();
-                    this.Activate();
-                    CenterLoginPanel();
-                    MatKhau_tb.Focus();
-                }
-            }
+            var frmGV = new FrmGiangVienMain();
+            frmGV.Show();
         }
 
         private void OpenStudentMain()
         {
-            try
-            {
-                // Mở màn hình sinh viên và tạm ẩn màn hình đăng nhập.
-                using (FrmStudentMain frmSinhVien = new FrmStudentMain())
-                {
-                    this.Hide();
-                    // ShowDialog chờ đến khi sinh viên đóng form hoặc đăng xuất.
-                    frmSinhVien.ShowDialog();
-                }
-            }
-            finally
-            {
-                // Xóa phiên và mật khẩu trước khi hiện lại màn hình đăng nhập.
-                UserSession.Clear();
-                MatKhau_tb.Clear();
-                if (!this.IsDisposed && !this.Disposing)
-                {
-                    this.Show();
-                    this.Activate();
-                    MatKhau_tb.Focus();
-                }
-            }
+            var frmSinhVien = new FrmStudentMain();
+            frmSinhVien.Show();
         }
-
         private void pictureBox1_Click(object sender, EventArgs e)
         {
 

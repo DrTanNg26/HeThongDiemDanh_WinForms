@@ -8,6 +8,7 @@ namespace HeThongDiemDanh
     public partial class FrmNhapOTP : Form
     {
         private int maBuoiHoc;
+        private string maSV = "";
         private string loaiCauHoi = "";
         private string traLoiXacThuc = "";
         private bool dangGui;
@@ -18,11 +19,12 @@ namespace HeThongDiemDanh
             InitializeComponent();
         }
 
-        public FrmNhapOTP(int maBuoi, string tenMon, string loai, string traLoi) : this()
+        public FrmNhapOTP(int maBuoi, string tenMon, string loai, string traLoi, string maSinhVien = "") : this()
         {
             maBuoiHoc = maBuoi;
             loaiCauHoi = loai;
             traLoiXacThuc = traLoi;
+            maSV = !string.IsNullOrEmpty(maSinhVien) ? maSinhVien : UserSession.TenDangNhap;
             lblMonHoc.Text = tenMon;
             lblHuongDan.Text = "Nhập mã giảng viên cung cấp.\r\nThiết bị cần kết nối cùng mạng Wi-Fi/LAN của phòng học.";
         }
@@ -92,7 +94,8 @@ namespace HeThongDiemDanh
             try
             {
                 // Kiểm tra lại mạng ngay khi gửi, kể cả khi đã bấm Kiểm tra mạng trước đó.
-                KetQua = await DiemDanhDAL.GhiNhanDiemDanhAsync(UserSession.TenDangNhap,
+                string maGhiNhan = !string.IsNullOrEmpty(maSV) ? maSV : UserSession.TenDangNhap;
+                KetQua = await DiemDanhDAL.GhiNhanDiemDanhAsync(maGhiNhan,
                     maBuoiHoc, otp, loaiCauHoi, traLoiXacThuc, CancellationToken.None);
 
                 if (KetQua == "Có mặt")

@@ -7,6 +7,7 @@ namespace HeThongDiemDanh
     public partial class FrmXacThuc : Form
     {
         private int maBuoiHoc;
+        private string maSV = "";
         private bool dangKiemTra;
         private TrangThaiXacThuc trangThai = new TrangThaiXacThuc();
         public string TraLoi { get; private set; } = "";
@@ -16,10 +17,11 @@ namespace HeThongDiemDanh
             InitializeComponent();
         }
 
-        public FrmXacThuc(int maBuoi, TrangThaiXacThuc thongTin) : this()
+        public FrmXacThuc(int maBuoi, TrangThaiXacThuc thongTin, string maSinhVien = "") : this()
         {
             maBuoiHoc = maBuoi;
             trangThai = thongTin;
+            maSV = !string.IsNullOrEmpty(maSinhVien) ? maSinhVien : UserSession.TenDangNhap;
             LoadCauHoi();
         }
 
@@ -76,7 +78,8 @@ namespace HeThongDiemDanh
             this.UseWaitCursor = true;
             try
             {
-                bool hopLe = await DiemDanhDAL.KiemTraXacThucAsync(UserSession.TenDangNhap,
+                string maKiemTra = !string.IsNullOrEmpty(maSV) ? maSV : UserSession.TenDangNhap;
+                bool hopLe = await DiemDanhDAL.KiemTraXacThucAsync(maKiemTra,
                     maBuoiHoc, trangThai.LoaiCauHoi, traLoi, CancellationToken.None);
 
                 if (hopLe)
