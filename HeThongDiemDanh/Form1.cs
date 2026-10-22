@@ -96,7 +96,7 @@
             if (!string.Equals(tt, "Hoạt động", StringComparison.OrdinalIgnoreCase) && !string.Equals(tt, "Hoat dong", StringComparison.OrdinalIgnoreCase))
             { MessageBox.Show($"Tài khoản không ở trạng thái hoạt động! (Trạng thái hiện tại: {tt})"); return; }
 
-            // So sánh mật khẩu (Hỗ trợ cả SHA256 và Plaintext tạm thời để tránh làm vỡ dữ liệu mẫu cũ)
+            // So sánh mật khẩu 
             var storedPwd = row.Table.Columns.Contains("MatKhau") && row["MatKhau"] != System.DBNull.Value
                 ? row["MatKhau"].ToString() : string.Empty;
 

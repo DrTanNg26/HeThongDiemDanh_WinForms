@@ -8,9 +8,9 @@ namespace HeThongDiemDanh
         public FrmAdmin()
         {
             InitializeComponent();
-            // Set admin name from session
+            // Dat ten admin len label
             lblAdminName.Text = string.IsNullOrEmpty(UserSession.HoTen) ? UserSession.TenDangNhap : UserSession.HoTen;
-            // Hook load for initial data
+            // load data 
             this.Load += FrmAdmin_Load;
             tabPhanLop.Resize += TabPhanLop_Resize;
         }
@@ -33,7 +33,7 @@ namespace HeThongDiemDanh
             int availableWidth = tabW - (padding * 2) - gap;
             int colWidth = Math.Max(250, availableWidth / 2);
 
-            // Left Column:
+            // Cot trai:
             int leftX = padding;
             lblChonLopHP.Location = new Point(leftX, 14);
             cboPhanLopHP.Location = new Point(lblChonLopHP.Right + 10, 10);
@@ -52,7 +52,7 @@ namespace HeThongDiemDanh
             btnGoiSV.Location = new Point(leftX, dgvSVTrongLop.Bottom + bottomSpacing);
             btnGoiSV.Size = new Size(180, btnHeight);
 
-            // Right Column:
+            // COt phai:
             int rightX = leftX + colWidth + gap;
             lblSVNgoaiLop.Location = new Point(rightX, 55);
 
@@ -73,7 +73,7 @@ namespace HeThongDiemDanh
 
         private void FrmAdmin_Load(object? sender, EventArgs e)
         {
-            // Load initial data
+            // Load  data
             try
             {
                 LoadKhoa();
@@ -362,17 +362,19 @@ namespace HeThongDiemDanh
             ClearKhoaFields();
         }
 
-        // Danh mục selector changed
+        // Danh mục chon trong combobox
         private void cmbDanhMucSelector_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var sel = cmbDanhMucSelector.SelectedItem?.ToString();
-            if (sel == "Lớp hành chính")
+            int index = cmbDanhMucSelector.SelectedIndex;
+            // 0: Khoa, 1: Lớp hành chính, 2: Môn học
+            if (index == 1)
             {
-                // show lop controls
+                // Show Lop Hanh Chinh
                 dgvKhoa.Visible = false;
+                dgvMonHoc.Visible = false;
                 dgvLopHanhChinh.Visible = true;
 
-                // hide Khoa controls
+                // Hide Khoa
                 lblMaKhoa.Visible = false;
                 txtMaKhoa.Visible = false;
                 lblTenKhoa.Visible = false;
@@ -381,7 +383,18 @@ namespace HeThongDiemDanh
                 btnKhoaLuu.Visible = false;
                 btnKhoaXoa.Visible = false;
 
-                // show Lop controls
+                // Hide Mon
+                lblMaMon.Visible = false;
+                txtMaMon.Visible = false;
+                lblTenMon.Visible = false;
+                txtTenMon.Visible = false;
+                lblSoTinChi.Visible = false;
+                txtSoTinChi.Visible = false;
+                btnMonThem.Visible = false;
+                btnMonLuu.Visible = false;
+                btnMonXoa.Visible = false;
+
+                // Show Lop
                 lblMaLop.Visible = true;
                 txtMaLop.Visible = true;
                 lblTenLop.Visible = true;
@@ -395,20 +408,23 @@ namespace HeThongDiemDanh
                 LoadLopHanhChinh();
                 LoadComboKhoaForLop();
             }
-            else if (sel == "Khoa")
+            else if (index == 2)
             {
-                // show Khoa
-                dgvKhoa.Visible = true;
+                // Show Mon Hoc
+                dgvKhoa.Visible = false;
                 dgvLopHanhChinh.Visible = false;
+                dgvMonHoc.Visible = true;
 
-                lblMaKhoa.Visible = true;
-                txtMaKhoa.Visible = true;
-                lblTenKhoa.Visible = true;
-                txtTenKhoa.Visible = true;
-                btnKhoaThem.Visible = true;
-                btnKhoaLuu.Visible = true;
-                btnKhoaXoa.Visible = true;
+                // Hide Khoa
+                lblMaKhoa.Visible = false;
+                txtMaKhoa.Visible = false;
+                lblTenKhoa.Visible = false;
+                txtTenKhoa.Visible = false;
+                btnKhoaThem.Visible = false;
+                btnKhoaLuu.Visible = false;
+                btnKhoaXoa.Visible = false;
 
+                // Hide Lop
                 lblMaLop.Visible = false;
                 txtMaLop.Visible = false;
                 lblTenLop.Visible = false;
@@ -419,15 +435,60 @@ namespace HeThongDiemDanh
                 btnLopLuu.Visible = false;
                 btnLopXoa.Visible = false;
 
-                LoadKhoa();
+                // Show Mon
+                lblMaMon.Visible = true;
+                txtMaMon.Visible = true;
+                lblTenMon.Visible = true;
+                txtTenMon.Visible = true;
+                lblSoTinChi.Visible = true;
+                txtSoTinChi.Visible = true;
+                btnMonThem.Visible = true;
+                btnMonLuu.Visible = true;
+                btnMonXoa.Visible = true;
+
+                LoadMonHoc();
             }
             else
             {
-                // default: hide lop controls and show Khoa
-                cmbDanhMucSelector.SelectedIndex = 0;
+                // Show Khoa (index == 0 or default)
+                dgvKhoa.Visible = true;
+                dgvLopHanhChinh.Visible = false;
+                dgvMonHoc.Visible = false;
+
+                // Hide Lop
+                lblMaLop.Visible = false;
+                txtMaLop.Visible = false;
+                lblTenLop.Visible = false;
+                txtTenLop.Visible = false;
+                lblKhoaForLop.Visible = false;
+                cboKhoaForLop.Visible = false;
+                btnLopThem.Visible = false;
+                btnLopLuu.Visible = false;
+                btnLopXoa.Visible = false;
+
+                // Hide Mon
+                lblMaMon.Visible = false;
+                txtMaMon.Visible = false;
+                lblTenMon.Visible = false;
+                txtTenMon.Visible = false;
+                lblSoTinChi.Visible = false;
+                txtSoTinChi.Visible = false;
+                btnMonThem.Visible = false;
+                btnMonLuu.Visible = false;
+                btnMonXoa.Visible = false;
+
+                // Show Khoa
+                lblMaKhoa.Visible = true;
+                txtMaKhoa.Visible = true;
+                lblTenKhoa.Visible = true;
+                txtTenKhoa.Visible = true;
+                btnKhoaThem.Visible = true;
+                btnKhoaLuu.Visible = true;
+                btnKhoaXoa.Visible = true;
+
+                LoadKhoa();
             }
         }
-
         private void LoadComboKhoaForLop()
         {
             var dt = KhoaDAL.LayDanhSach();
@@ -659,9 +720,9 @@ namespace HeThongDiemDanh
 
         }
 
-        // =============================================
+
         // LỚP HỌC PHẦN
-        // =============================================
+    
         private void LoadLopHocPhan()
         {
             try
@@ -806,9 +867,9 @@ namespace HeThongDiemDanh
             }
         }
 
-        // =============================================
+        //
         // PHÂN LỚP HỌC PHẦN
-        // =============================================
+
         private void LoadComboPhanLopHP()
         {
             try

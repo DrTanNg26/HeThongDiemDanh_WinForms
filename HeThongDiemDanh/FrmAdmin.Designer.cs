@@ -1,4 +1,4 @@
-namespace HeThongDiemDanh
+﻿namespace HeThongDiemDanh
 {
     partial class FrmAdmin
     {
@@ -567,7 +567,7 @@ namespace HeThongDiemDanh
             // 
             // txtSoTinChi
             // 
-            txtSoTinChi.Location = new Point(274, 320);
+            txtSoTinChi.Location = new Point(22, 265);
             txtSoTinChi.Name = "txtSoTinChi";
             txtSoTinChi.Size = new Size(120, 39);
             txtSoTinChi.TabIndex = 5;
@@ -575,7 +575,7 @@ namespace HeThongDiemDanh
             // 
             // btnMonThem
             // 
-            btnMonThem.Location = new Point(18, 411);
+            btnMonThem.Location = new Point(21, 330);
             btnMonThem.Name = "btnMonThem";
             btnMonThem.Size = new Size(110, 40);
             btnMonThem.TabIndex = 6;
@@ -586,7 +586,7 @@ namespace HeThongDiemDanh
             // 
             // btnMonLuu
             // 
-            btnMonLuu.Location = new Point(146, 411);
+            btnMonLuu.Location = new Point(142, 330);
             btnMonLuu.Name = "btnMonLuu";
             btnMonLuu.Size = new Size(110, 40);
             btnMonLuu.TabIndex = 7;
@@ -597,7 +597,7 @@ namespace HeThongDiemDanh
             // 
             // btnMonXoa
             // 
-            btnMonXoa.Location = new Point(274, 411);
+            btnMonXoa.Location = new Point(278, 330);
             btnMonXoa.Name = "btnMonXoa";
             btnMonXoa.Size = new Size(116, 40);
             btnMonXoa.TabIndex = 8;
